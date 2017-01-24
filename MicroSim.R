@@ -52,6 +52,10 @@ for(i in 1:length(unique(individuals2$MSOA))){
 individuals2[which(individuals2$age_band == 0), "work_MSOA"] <- "NA"
 individuals2[which(individuals2$in_employment==0 & individuals2$age_band > 0), "work_MSOA"] <- "UNEMP"
 
+#Remove percentage fields from output
+individuals2$active_perc <- NULL
+individuals2$employed_perc <- NULL
+
 #Check
 individuals2$flag <- 1
 check <- summarize(group_by(individuals2, MSOA, work_MSOA), sum(flag))
