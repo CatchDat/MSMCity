@@ -1,7 +1,7 @@
 #Set workspace
 setwd("//ds.leeds.ac.uk/staff/staff7/geoces/LIDA internship/Catch project/MicroSim")
 
-#Read in population by age and gender file
+#Read in origin-destination flows
 workplaces <- readr::read_tsv("176365560_data.tsv")
 
 #Rename place of work column

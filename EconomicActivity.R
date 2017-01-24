@@ -1,7 +1,7 @@
 #Set workspace
 setwd("//ds.leeds.ac.uk/staff/staff7/geoces/LIDA internship/Catch project/MicroSim")
 
-#Read in population by age and gender file
+#Read in population by gender, age and economic status file
 econ_act <- readr::read_tsv("555525193_data.tsv")
 
 #Rename column to remove space
