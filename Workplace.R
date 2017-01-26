@@ -2,24 +2,25 @@
 setwd("//ds.leeds.ac.uk/staff/staff7/geoces/LIDA internship/Catch project/MicroSim")
 
 #Read in origin-destination flows
-workplaces <- readr::read_tsv("176365560_data.tsv")
+workplaces <- readr::read_tsv("963712085_data.tsv")
 
-#Rename place of work column
-colnames(workplaces)[4] <- "destination"
 #Rename current residence column
-colnames(workplaces)[5] <- "origin"
+colnames(workplaces)[colnames(workplaces)=="currently residing in : 2011 super output area - middle layer"] <- "origin"
+#Rename place of work column
+colnames(workplaces)[colnames(workplaces)=="place of work"] <- "destination"
 
 #Remove unwanted columns
 workplaces$Population <- NULL
 workplaces$Units <- NULL
 workplaces$Date <- NULL
 workplaces$flag <- NULL
-workplaces <- workplaces[,-which(colnames(workplaces)=="value type")]
+workplaces$`value type` <- NULL
 
 #Trim origin field
-workplaces$origin <- substr(workplaces$origin, 24, 32)
+workplaces$origin <- substr(workplaces$origin, 1, 9)
 
 #Rename fields
+workplaces$destination <- substr(workplaces$destination, 16, 50)
 workplaces[which(workplaces$destination == "Northern Ireland"), "destination"] <- "NI"
 workplaces[which(workplaces$destination == "Mainly work at or from home"), "destination"] <- "WFH"
 workplaces[which(workplaces$destination == "Offshore installation"), "destination"] <- "OFF"
@@ -28,9 +29,6 @@ workplaces[which(workplaces$destination == "Outside UK"), "destination"] <- "OUT
 
 #Trim destination field
 workplaces$destination <- substr(workplaces$destination, 1, 9)
-
-#Re-order columns
-workplaces <- workplaces[,c(2,1,3)]
 
 #Sort data by origins column
 workplaces <- workplaces[order(workplaces$origin),]

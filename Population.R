@@ -2,14 +2,14 @@
 setwd("//ds.leeds.ac.uk/staff/staff7/geoces/LIDA internship/Catch project/MicroSim")
 
 #Read in population by age and gender file
-people <- readr::read_tsv("2230115101_data.tsv")
+people <- readr::read_tsv("1964726853_data.tsv")
 
 #Convert field type to numeric
-people$date <- as.numeric(people$date)
+people$Date <- as.numeric(people$Date)
 people$value <- as.numeric(people$value)
 
 #Remove unwanted columns
-people$date <- NULL
+people$Date <- NULL
 people$flag <- NULL
 people$Units <- NULL
 people$Population <- NULL

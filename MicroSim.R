@@ -6,8 +6,7 @@ individuals <- data.frame(ID=seq(1,noEntries), MSOA=rep(NA,noEntries), num_sex=r
 for (i in 1:nrow(sum_people)) {
   #Define the start and end row for each age gender category
   startRow <- ((sum_people[i,]$cumul_freq-sum_people[i,]$freq)+1)
-  #print(startRow)
-  endRow <- (sum_people[i,"cumul_freq"])
+  endRow <- (sum_people[i,]$cumul_freq)
   #print(endRow)
   noPeople <- (sum_people[i,"freq"])
   #print(noPeople)

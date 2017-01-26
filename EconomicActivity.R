@@ -2,19 +2,22 @@
 setwd("//ds.leeds.ac.uk/staff/staff7/geoces/LIDA internship/Catch project/MicroSim")
 
 #Read in population by gender, age and economic status file
-econ_act <- readr::read_tsv("555525193_data.tsv")
+econ_act <- readr::read_tsv("2737019855_data.tsv")
 
 #Rename column to remove space
-colnames(econ_act)[7] <- "EconomicActivity"
-#Rename geography column
-colnames(econ_act)[6] <- "MSOA"
+colnames(econ_act)[colnames(econ_act)=="Economic Activity"] <- "EconomicActivity"
+
+#Create an additional column containing the MSOA code
+econ_act$MSOA <- NA
+econ_act$MSOA <- substr(econ_act$"2011 super output area - middle layer", 0, 9)
 
 #Remove unwanted columns
 econ_act$Date <- NULL
 econ_act$flag <- NULL
 econ_act$Units <- NULL
 econ_act$Population <- NULL
-econ_act <- econ_act[,-which(colnames(econ_act)=="value type")]
+econ_act$`2011 super output area - middle layer` <- NULL
+econ_act$`value type` <- NULL
 
 #Remove records containing totals
 econ_act <- econ_act[-which(econ_act$Age=="All categories: Age 16 and over"), ]
