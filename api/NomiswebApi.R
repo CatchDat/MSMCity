@@ -10,6 +10,40 @@
 #
 
 library(digest)
+library(rjson)
+
+getMetadata <- function(tableName) {
+  baseUrl <- "https://www.nomisweb.co.uk/"
+  # hard code measures (not sure what it defines)
+
+  query <- list(search = paste0("*", tableName, "*"))
+
+  queryUrl <- httr::modify_url(baseUrl, path = "api/v01/dataset/def.sdmx.json", query = query)
+  result <- fromJSON(file=queryUrl)
+  table <- result$structure$keyfamilies$keyfamily[[1]]$id
+  print(paste("Table: ", table))
+
+  # Get fields
+  # e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1.def.sdmx.json
+  queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, ".def.sdmx.json"))
+  #print(queryUrl)
+  result <- fromJSON(file=queryUrl)
+  print("Fields:")
+  fields <- result$structure$keyfamilies$keyfamily[[1]]$components$dimension
+  for (i in 1:length(fields)) {
+    field <- fields[[i]]$conceptref
+    print(paste0("  ", field))
+    # Get values
+    # e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1/C_AGE.def.sdmx.json
+    queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, "/", field, ".def.sdmx.json"))
+    result <- fromJSON(file=queryUrl)
+    values <- result$structure$codelists$codelist[[1]]$code
+    for (j in 1:length(values)) {
+      print(paste0("    ", values[[j]]$value, ": ", values[[j]]$description$value))
+    }
+  }
+  return(fields);
+}
 
 getODData <- function(table, origins, destinations, columns, removeZeroObs = TRUE, format = "tsv", apiKey = "") {
   baseUrl <- "https://www.nomisweb.co.uk/"
