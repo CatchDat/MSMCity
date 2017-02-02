@@ -4,6 +4,10 @@
 # TODO query builder?
 # TODO geographic (MSOA) builder?
 # TODO output column builder?
+# see https://www.nomisweb.co.uk/api/v01/dataset/def.htm?search=*DC1117EW* -> NM_792_1
+# then e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1/c_age.def.htm
+#           https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1/geography.def.htm
+#
 
 library(digest)
 

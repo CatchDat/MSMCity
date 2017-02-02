@@ -1,35 +1,13 @@
+
 source("api/NomiswebApi.R")
+
+# put your nomisweb API key in this file if you have one
+# e.g.
+# apiKey <- "0x0123456789abcdef0123456789abcdef01234567"
+if (file.exists("api/ApiKey.R")) source("api/ApiKey.R")
+
 library(dplyr)
 
-# # Economic Category
-# # =================
-#
-# #
-# # Sex
-# # ===
-# # F 0
-# # M 1
-# #sexLabels <- c("F", "M")
-#
-# # Age Band
-# # ========
-# # 16-24: 1
-# # 25-34: 2
-# # 35-44: 3
-# # 45-54: 4
-# # 55-64: 5
-# #  >=65: 6
-# ageBandSexLabels <- c("F16-24 E P/T", "F25-34 E P/T", "F35-44 E P/T", "F45-54 E P/T", "F55-64 E P/T", "F65+ E P/T",
-#                       "M16-24 E P/T", "M25-34 E P/T", "M35-44 E P/T", "M45-54 E P/T", "M55-64 E P/T", "M65+ E P/T",
-#                       "F16-24 E F/T", "F25-34 E F/T", "F35-44 E F/T", "F45-54 E F/T", "F55-64 E F/T", "F65+ E F/T",
-#                       "M16-24 E F/T", "M25-34 E F/T", "M35-44 E F/T", "M45-54 E F/T", "M55-64 E F/T", "M65+ E F/T",
-#                       "F16-24 S P/T", "F25-34 S P/T", "F35-44 S P/T", "F45-54 S P/T", "F55-64 S P/T", "F65+ S P/T",
-#                       "M16-24 S P/T", "M25-34 S P/T", "M35-44 S P/T", "M45-54 S P/T", "M55-64 S P/T", "M65+ S P/T",
-#                       "F16-24 S F/T", "F25-34 S F/T", "F35-44 S F/T", "F45-54 S F/T", "F55-64 S F/T", "F65+ S F/T",
-#                       "M16-24 S F/T", "M25-34 S F/T", "M35-44 S F/T", "M45-54 S F/T", "M55-64 S F/T", "M65+ S F/T")
-
-# API key
-apiKey <- "0xc14c302649583b1151acd1a5d318ae767d4c8e8f"
 # Newcastle
 origins <- "1245709951...1245709978,1245715039"
 
