@@ -1,4 +1,4 @@
-
+setwd("~/dev/CatchDat/MSMCity/")
 source("api/NomiswebApi.R")
 
 # put your nomisweb API key in this file if you have one
@@ -85,20 +85,20 @@ for (msoa in originMsoas) {
   # all zero entries of dests already removed
   dests <- od$OBS_VALUE
 
-  msim <- humanleague::synthPop(list(dests, ageSexEcon), 100)
+  msim <- humanleague::synthPop(list(dests, ageSexEcon), 10)
   print(paste("Conv ", msim$conv, " after", msim$attempts, "attempts"))
   if (!msim$conv) {
     print("humanleague::synthPop not converged, falling back to ipfp with synthPop result as seed")
-    msim<-mipfp::Ipfp(msim$x.hat*0+1,list(1,2),list(dests, ageSexEcon), tol=1e-8)
-    print(paste("IPFP conv ", msim$conv))
-    stopifnot(sum(msim$x.hat) == sum(dests))
-    stopifnot(abs(sum(colSums(msim$x.hat)-ageSexEcon)) < 1e-8 )
-    stopifnot(abs(sum(rowSums(msim$x.hat)-dests)) < 1e-8 )
+    #msim<-mipfp::Ipfp(msim$x.hat*0+1,list(1,2),list(dests, ageSexEcon), tol=1e-8)
+    #print(paste("IPFP conv ", msim$conv))
+    #stopifnot(sum(msim$x.hat) == sum(dests))
+    #stopifnot(abs(sum(colSums(msim$x.hat)-ageSexEcon)) < 1e-8 )
+    #stopifnot(abs(sum(rowSums(msim$x.hat)-dests)) < 1e-8 )
   }
 
   #synPop<-data.frame(Dest=character(), Sex=character(), AgeBand=character(), NumPeople=double())
 
-  indices<-which(msim$x.hat > 1e-8, arr.ind=T)
+  indices<-which(msim$x.hat > 1e-2, arr.ind=T)
   values<-msim$x.hat[indices]
 
   sexAgeEconLabels = paste(pop$C_SEX_NAME, pop$C_AGE_NAME, pop$ECONOMIC_ACTIVITY_NAME)
@@ -107,3 +107,46 @@ for (msoa in originMsoas) {
   allSynPop<-rbind(allSynPop, synPop)
 }
 write.csv(allSynPop, "data/msim.csv");
+
+# This is output from Charlotte's AppUsers.R
+appUsers <- read.csv("./data/appUsers.csv");
+
+# rename some values for consistency
+appUsers$age_band[appUsers$age_band == 1] <- "16-24"
+appUsers$age_band[appUsers$age_band == 2] <- "25-34"
+appUsers$age_band[appUsers$age_band == 3] <- "35-44"
+appUsers$age_band[appUsers$age_band == 4] <- "45-54"
+appUsers$age_band[appUsers$age_band == 5] <- "55-64"
+appUsers$age_band[appUsers$age_band == 6] <- "65+"
+appUsers$gender <- as.character(appUsers$gender)
+appUsers$gender[appUsers$gender == "female"] <- "F"
+appUsers$gender[appUsers$gender == "male"] <- "M"
+
+# TODO need to match both home and work...first get appUsers who live in Newcastle
+neAppUsers <- appUsers[appUsers$HomeMSOA %in% unique(allod$CURRENTLY_RESIDING_IN_CODE),]
+
+# temporary create concatenated OD column
+allSynPop$tmp<-paste(allSynPop$Origin, allSynPop$Dest, allSynPop$AgeSexEcon)
+neAppUsers$tmp<-paste(neAppUsers$HomeMSOA, neAppUsers$WorkMSOA, neAppUsers$gender, neAppUsers$age_band)
+
+allSynPop$Agent<-0
+
+for (i in 1:length(neAppUsers)) {
+  matches<-grep(neAppUsers[i,"tmp"], allSynPop$tmp)
+  #print(matches)
+  if (length(matches) > 0 ) {
+    #print(neAppUsers[i,"tmp"])
+    #print(matches)
+    # just assign to first match for now
+    if (!is.na(matches[1]))
+      # TODO can store multiple agents in a list, or expand out the population into individuals, or something else...
+      allSynPop[matches[1], "Agent"] <- neAppUsers$agentID[i]
+  } else {
+    #warning(paste("Failed to match agent", neAppUsers[i, "tmp"], "to synthetic population"))
+  }
+}
+
+allSynPop$tmp <- NULL
+neAppUsers$tmp<- NULL
+
+synPopAgents<-allSynPop[allSynPop$Agent != 0,]

@@ -1,9 +1,10 @@
 # nomisweb.co.uk RESTful API interface
 
-# TODO mapping between census tables and their API ids?
 # TODO query builder?
 # TODO geographic (MSOA) builder?
 # TODO output column builder?
+# TODO single data extraction function using query and result builders above?
+
 # see https://www.nomisweb.co.uk/api/v01/dataset/def.htm?search=*DC1117EW* -> NM_792_1
 # then e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1/c_age.def.htm
 #           https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1/geography.def.htm
@@ -21,7 +22,9 @@ getMetadata <- function(tableName) {
   queryUrl <- httr::modify_url(baseUrl, path = "api/v01/dataset/def.sdmx.json", query = query)
   result <- fromJSON(file=queryUrl)
   table <- result$structure$keyfamilies$keyfamily[[1]]$id
+  #return(result$structure$keyfamilies$keyfamily[[1]])
   print(paste("Table: ", table))
+  print(paste("Description: ", result$structure$keyfamilies$keyfamily[[1]]$name$value))
 
   # Get fields
   # e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1.def.sdmx.json
@@ -62,7 +65,6 @@ getODData <- function(table, origins, destinations, columns, removeZeroObs = TRU
   queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, ".data.", format), query = query)
 
   filename <- paste0("./data/", digest(queryUrl, "md5"), ".", format)
-  print(filename)
   # used cached data if available, otherwise download. md5sum should ensure data file exactly matches query
   if (!file.exists(filename)) {
     curl::curl_download(queryUrl, filename)
@@ -107,7 +109,6 @@ getEconData <- function(table, geography, sexes, ages, econ, columns, removeZero
   queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, ".data.", format), query = query)
 
   filename <- paste0("./data/", digest(queryUrl, "md5"), ".", format)
-  print(filename)
   # used cached data if available, otherwise download. md5sum should ensure data file exactly matches query
   if (!file.exists(filename)) {
     curl::curl_download(queryUrl, filename)
