@@ -85,10 +85,10 @@ for (msoa in originMsoas) {
   # all zero entries of dests already removed
   dests <- od$OBS_VALUE
 
-  msim <- humanleague::synthPop(list(dests, ageSexEcon), 10)
-  print(paste("Conv ", msim$conv, " after", msim$attempts, "attempts"))
+  msim <- humanleague::synthPop(list(dests, ageSexEcon))
+  #print(paste("Conv ", msim$conv))
   if (!msim$conv) {
-    print("humanleague::synthPop not converged, falling back to ipfp with synthPop result as seed")
+    print("humanleague::synthPop not converged!")
     #msim<-mipfp::Ipfp(msim$x.hat*0+1,list(1,2),list(dests, ageSexEcon), tol=1e-8)
     #print(paste("IPFP conv ", msim$conv))
     #stopifnot(sum(msim$x.hat) == sum(dests))
@@ -129,11 +129,29 @@ neAppUsers <- appUsers[appUsers$HomeMSOA %in% unique(allod$CURRENTLY_RESIDING_IN
 allSynPop$tmp<-paste(allSynPop$Origin, allSynPop$Dest, allSynPop$AgeSexEcon)
 neAppUsers$tmp<-paste(neAppUsers$HomeMSOA, neAppUsers$WorkMSOA, neAppUsers$gender, neAppUsers$age_band)
 
+#Read in home and work locations
+homeLocs <- read.csv("./data/HomeLocations_minReqObsvs10.csv")
+workLocs <- read.csv("./data/WorkLocations_minReqObsvs10.csv")
+
+# Append home/work lat/lon
+neAppUsers$HomeLat <- NA
+neAppUsers$HomeLon <- NA
+neAppUsers$WorkLat <- NA
+neAppUsers$WorkLon <- NA
+
+for (i in 1:nrow(neAppUsers)) {
+  agentId = neAppUsers[i,]$agentID
+  neAppUsers[i,]$HomeLat = homeLocs[homeLocs$agentID == agentId,]$popLocY
+  neAppUsers[i,]$HomeLon = homeLocs[homeLocs$agentID == agentId,]$popLocX
+  neAppUsers[i,]$WorkLat = workLocs[workLocs$agentID == agentId,]$popLocY
+  neAppUsers[i,]$WorkLon = workLocs[workLocs$agentID == agentId,]$popLocX
+}
+
 allSynPop$Agent<-0
 
-for (i in 1:length(neAppUsers)) {
+for (i in 1:nrow(neAppUsers)) {
   matches<-grep(neAppUsers[i,"tmp"], allSynPop$tmp)
-  #print(matches)
+  print(matches)
   if (length(matches) > 0 ) {
     #print(neAppUsers[i,"tmp"])
     #print(matches)
@@ -150,3 +168,61 @@ allSynPop$tmp <- NULL
 neAppUsers$tmp<- NULL
 
 synPopAgents<-allSynPop[allSynPop$Agent != 0,]
+
+#
+#Define coordinates
+homeCoords = cbind(Longitude = neAppUsers$HomeLon, Latitude = neAppUsers$HomeLat)
+workCoords = cbind(Longitude = neAppUsers$WorkLon, Latitude = neAppUsers$WorkLat)
+
+#Define OD lines
+lineList = c() #vector("list", nrow(neAppUsers))
+for (i in 1:nrow(neAppUsers)) {
+  m <- matrix(c(neAppUsers$HomeLon[i], neAppUsers$WorkLon[i], neAppUsers$HomeLat[i], neAppUsers$WorkLat[i]), ncol=2)
+  ln <- Line(m)
+  lineList <- append(lineList,ln)
+
+}
+
+as_lines = vector(mode = "list", length = length(lineList))
+i = 1
+for(i in 1:length(lineList)){
+  as_lines[[i]] = Lines(slinelist = list(lineList[[i]]), ID = i) # now Lines (not Line)
+}
+odSet = SpatialLines(LinesList = as_lines)
+#plot(l)
+ldf = SpatialLinesDataFrame(sl = odSet, data = data.frame(id = 1:length(as_lines)))
+#Load spatial library
+library(sp)
+
+#Set up variables for the different projection systems
+latlong <- "+init=epsg:4326"
+
+
+#Make spatial data frame
+homePts <- SpatialPointsDataFrame(homeCoords, neAppUsers, proj4string = CRS(latlong))
+workPts <- SpatialPointsDataFrame(workCoords, neAppUsers, proj4string = CRS(latlong))
+
+#Read in MSOA shape file (unzip to directory and specify directory name for dsn)
+library(rgdal)
+#OA <- readOGR(dsn = ".", layer = "england_oa_2011")
+MSOA <- readOGR(dsn = "./data", layer = "england_msoa_2011")
+#Convert MSOA bng polygons to latitude and longitude
+MSOA <- spTransform(MSOA, CRS(latlong))
+
+#Point in polygon
+homePtInPoly <- over(homePts, MSOA, returnList = FALSE, fn = NULL)
+workPtInPoly <- over(workPts, MSOA, returnList = FALSE, fn = NULL)
+
+msoaNcle=MSOA[grepl("Newcastle upon Tyne", MSOA$name),]
+
+# visualise results
+library(leaflet)
+leaflet() %>%
+  setView(-1.6, 55.0, 11) %>%
+  addProviderTiles("Stamen.Toner") %>%
+  addPolylines(data = msoaNcle, color ="yellow", weight = 2) %>%
+  addPolylines(data = odSet, color ="green", weight = 2) %>%
+  addCircleMarkers(data = homePts, color="blue") %>%
+  addCircleMarkers(data = workPts, color="red")
+
+
