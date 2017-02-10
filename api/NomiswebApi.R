@@ -13,8 +13,12 @@
 library(digest)
 library(rjson)
 
+baseUrl <- "https://www.nomisweb.co.uk/"
+
+# Store your api key in .Renviron
+apiKey = Sys.getenv("NOMIS_API_KEY")
+
 getMetadata <- function(tableName) {
-  baseUrl <- "https://www.nomisweb.co.uk/"
   # hard code measures (not sure what it defines)
 
   query <- list(search = paste0("*", tableName, "*"))
@@ -48,8 +52,43 @@ getMetadata <- function(tableName) {
   return(fields);
 }
 
+# Get list of MSOA geog codes from a query string e.g. "City of Lon*"
+# MSOA names have a number so almost certainly need to terminate the query string with a wildcard "*"
+getMSOAs <- function(queryString) {
+
+  query <- list(search = queryString)
+
+  if (apiKey == "") {
+    warning("Warning, no
+            API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key")
+  }
+  queryUrl <- httr::modify_url(baseUrl, path = "/api/v01/dataset/NM_1_1/geography/2092957703TYPE297.def.sdmx.json", query = query)
+
+  #print(queryUrl)
+
+  result <- fromJSON(file=paste0(queryUrl))
+  nResults = length(result$structure$codelists$codelist[[1]]$code)
+  print(paste(nResults, "results"))
+  geogString = ""
+  if (nResults > 0) {
+    geogString = paste(geogString, result$structure$codelists$codelist[[1]]$code[[1]]$value)
+    print(paste(result$structure$codelists$codelist[[1]]$code[[1]]$annotations$annotation[[3]]$annotationtext,
+                result$structure$codelists$codelist[[1]]$code[[1]]$description[1]$value))
+    if (nResults > 1) {
+      for (i in 2:length(result$structure$codelists$codelist[[1]]$code)) {
+        print(paste(result$structure$codelists$codelist[[1]]$code[[i]]$annotations$annotation[[3]]$annotationtext,
+                    result$structure$codelists$codelist[[1]]$code[[i]]$description[1]$value))
+        geogString = paste(geogString, result$structure$codelists$codelist[[1]]$code[[i]]$value, sep= ",")
+      }
+    }
+  }
+
+  return(geogString)
+}
+
+
 getODData <- function(table, origins, destinations, columns, removeZeroObs = TRUE, format = "tsv", apiKey = "") {
-  baseUrl <- "https://www.nomisweb.co.uk/"
+  #baseUrl <- "https://www.nomisweb.co.uk/"
   # hard code measures (not sure what it defines)
 
   query <- list(date = "latest",
@@ -80,7 +119,7 @@ getODData <- function(table, origins, destinations, columns, removeZeroObs = TRU
 }
 
 getEconData <- function(table, geography, sexes, ages, econ, columns, removeZeroObs = TRUE, format = "tsv", apiKey = "") {
-  baseUrl <- "https://www.nomisweb.co.uk/"
+  #baseUrl <- "https://www.nomisweb.co.uk/"
 
   # hard code measures (not sure what it defines)
 
