@@ -5,7 +5,15 @@ source("api/NomiswebApi.R")
 
 library(dplyr)
 
-region=("Tower Hamlets")
+# printVec <- function(name, vec) {
+#   cat(paste0(name," = c("))
+#   cat(paste0(vec[1:length(vec)-1], sep=","))
+#   cat(paste0(vec[length(vec)],")\n"))
+#   #print("")
+# }
+
+
+region=("Newcastle upon Tyne")
 
 # Newcastle origins <- "1245709951...1245709978,1245715039"
 origins <- getMSOAs(paste(region, "*"))
@@ -82,6 +90,9 @@ for (msoa in originMsoas) {
   #destLabels <-od[od$>0,"destination"]
   # all zero entries of dests already removed
   dests <- od$OBS_VALUE
+  #printVec("m1",ageSexEcon)
+  #printVec("m2",dests)
+  #cat("run(list(m1,m2),1000)\n\n")
 
   msim <- humanleague::synthPop(list(dests, ageSexEcon))
   #print(paste("Conv ", msim$conv))
@@ -172,15 +183,20 @@ synPopAgents<-allSynPop[allSynPop$Agent != 0,]
 homeCoords = cbind(Longitude = regionalAppUsers$HomeLon, Latitude = regionalAppUsers$HomeLat)
 workCoords = cbind(Longitude = regionalAppUsers$WorkLon, Latitude = regionalAppUsers$WorkLat)
 
+library(sf)
 library(sp)
+library(stplanr)
+
+
 
 #Define OD lines
 lineList = c() #vector("list", nrow(regionalAppUsers))
 for (i in 1:nrow(regionalAppUsers)) {
   m <- matrix(c(regionalAppUsers$HomeLon[i], regionalAppUsers$WorkLon[i], regionalAppUsers$HomeLat[i], regionalAppUsers$WorkLat[i]), ncol=2)
   ln <- Line(m)
+  #ln = st_linestring(m, dim="XY")
+  #print(ln)
   lineList <- append(lineList,ln)
-
 }
 
 as_lines = vector(mode = "list", length = length(lineList))
@@ -189,40 +205,88 @@ for(i in 1:length(lineList)){
   as_lines[[i]] = Lines(slinelist = list(lineList[[i]]), ID = i) # now Lines (not Line)
 }
 odSet = SpatialLines(LinesList = as_lines)
-#plot(l)
+# #plot(l)
 ldf = SpatialLinesDataFrame(sl = odSet, data = data.frame(id = 1:length(as_lines)))
-#Load spatial library
-
 
 #Set up variables for the different projection systems
 latlong <- "+init=epsg:4326"
 
 
-#Make spatial data frame
+
+# #Make spatial data frame
 homePts <- SpatialPointsDataFrame(homeCoords, regionalAppUsers, proj4string = CRS(latlong))
 workPts <- SpatialPointsDataFrame(workCoords, regionalAppUsers, proj4string = CRS(latlong))
 
 #Read in MSOA shape file (unzip to directory and specify directory name for dsn)
 library(rgdal)
 #OA <- readOGR(dsn = ".", layer = "england_oa_2011")
-MSOA <- readOGR(dsn = "./data", layer = "england_msoa_2011")
+#MSOA <- readOGR(dsn = "./data", layer = "england_msoa_2011")
+MSOA <- st_read("./data/england_msoa_2011.shp")
 #Convert MSOA bng polygons to latitude and longitude
-MSOA <- spTransform(MSOA, CRS(latlong))
+MSOA <- st_transform(MSOA, latlong)
 
 #Point in polygon
-homePtInPoly <- over(homePts, MSOA, returnList = FALSE, fn = NULL)
-workPtInPoly <- over(workPts, MSOA, returnList = FALSE, fn = NULL)
+#homePtInPoly <- over(homePts, MSOA, returnList = FALSE, fn = NULL)
+#workPtInPoly <- over(workPts, MSOA, returnList = FALSE, fn = NULL)
 
 msoaRegion=MSOA[grepl(region, MSOA$name),]
 
-# visualise results
-library(leaflet)
-leaflet() %>%
-  setView(-1.6, 55.0, 11) %>%
-  addProviderTiles("Stamen.Toner") %>%
-  addPolylines(data = msoaRegion, color ="yellow", weight = 2) %>%
-  addPolylines(data = odSet, color ="green", weight = 2) %>%
-  addCircleMarkers(data = homePts, color="blue") %>%
-  addCircleMarkers(data = workPts, color="red")
+sp_msoaRegion = as(msoaRegion, "Spatial")
 
+# OD for a single MSOA (the last one from the loop above for now)
 
+msoapop = sum(pop$`sum(OBS_VALUE)`)
+
+sp_randHomes = spsample(sp_msoaRegion[sp_msoaRegion$code==msoa,],msoapop,"random")
+randHomes = st_sfc(st_poly_sample(msoaRegion[sp_msoaRegion$code==msoa,],msoapop))
+
+# TODO work out how to get one per MSOA
+# TODO extend to national
+# one workplace per msoa for now
+randWorks = st_poly_sample(msoaRegion, 1) # fix
+sp_randWorks = spsample(sp_msoaRegion,1,"random")
+
+# # visualise results
+# library(leaflet)
+# leaflet() %>%
+#   setView(-1.6, 53.0, 6) %>%
+#   addProviderTiles("Stamen.Toner") %>%
+#   addPolylines(data = sp_msoaRegion, color ="yellow", weight = 2) %>%
+#   addPolylines(data = odSet, color ="green", weight = 2) %>%
+#   addCircleMarkers(data = homePts, color="blue") %>%
+#   addCircleMarkers(data = workPts, color="red") %>%
+#   addCircleMarkers(data = workPts, color="red") %>%
+#   addCircleMarkers(data = sp_randHomes, color="black") %>%
+#   addCircleMarkers(data = sp_randWorks, color="green")
+
+# Filter out destinations outside the region
+odRegion = allod[allod$PLACE_OF_WORK_CODE %in% allod$CURRENTLY_RESIDING_IN_CODE,]
+net=od2line(flow = odRegion, zones = sp_msoaRegion)
+#w=odRegion$OBS_VALUE/max(odRegion$OBS_VALUE)*10.0
+#plot(net,lwd=w)
+
+# remove null routes
+net=net[net$CURRENTLY_RESIDING_IN_CODE != net$PLACE_OF_WORK_CODE,]
+rdsfile=paste0("./data/routes_",region,".Rds")
+# used cached routes if available
+if (file.exists(rdsfile)) {
+  routes = readRDS(rdsfile)
+} else {
+  # compute then save
+  routes=line2route(net, route_fun="route_graphhopper")
+  saveRDS(routes, file=rdsfile)
+}
+
+map = leaflet() %>% addTiles() %>% addPolylines(data = routes, opacity = 0.05)
+
+#library(tmap)
+
+# remove users with work location undefined
+regionalAppUsers = regionalAppUsers[!is.na(regionalAppUsers$WorkMSOA),]
+
+# superimpose app users
+for (i in 1:length(regionalAppUsers)) {
+  trip=route_graphhopper(from=c(regionalAppUsers$HomeLon[i],regionalAppUsers$HomeLat[i]),to=c(regionalAppUsers$WorkLon[i],regionalAppUsers$WorkLat[i]))
+  cat(i)
+  map = map %>% addPolylines(data = trip, color="#F00")
+}
