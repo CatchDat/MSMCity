@@ -23,7 +23,7 @@ destinations <- paste0("1103101953,1103101955,1103101954,1103101956,2092957702,2
 columns <- "currently_residing_in_code,place_of_work_code,obs_value"
 
 # Get OD data
-allod <- getODData("NM_1228_1", origins, destinations, columns, apiKey = apiKey)
+allod <- getODData("NM_1228_1", origins, destinations, columns)
 
 sexes <- "1, 2"
 ages <- "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
@@ -31,7 +31,7 @@ economic_activity <- "4, 5, 7, 8"
 columns <- "geography_code,c_sex_name,c_age_name,economic_activity_name,obs_value"
 
 # Get pop - age by sex by econ ca=t
-allpop <- getEconData("NM_750_1", origins, sexes, ages, economic_activity, columns, apiKey = apiKey)
+allpop <- getEconData("NM_750_1", origins, sexes, ages, economic_activity, columns)
 
 # broaden age ranges
 allpop$C_AGE_NAME[allpop$C_AGE_NAME == "Age 16 to 19"
@@ -231,14 +231,18 @@ MSOA <- st_transform(MSOA, latlong)
 
 msoaRegion=MSOA[grepl(region, MSOA$name),]
 
+
 sp_msoaRegion = as(msoaRegion, "Spatial")
 
 # OD for a single MSOA (the last one from the loop above for now)
 
 msoapop = sum(pop$`sum(OBS_VALUE)`)
 
-sp_randHomes = spsample(sp_msoaRegion[sp_msoaRegion$code==msoa,],msoapop,"random")
-randHomes = st_sfc(st_poly_sample(msoaRegion[sp_msoaRegion$code==msoa,],msoapop))
+# no. of households per MSOA
+msoaRegionHh = getMSOAHouseholds(origins)
+msoaHouseholds = msoaRegionHh[msoaRegionHh$GEOGRAPHY_CODE==msoa,2]
+sp_randHomes = spsample(sp_msoaRegion[sp_msoaRegion$code==msoa,],msoaHouseholds,"random")
+randHomes = st_sfc(st_poly_sample(msoaRegion[sp_msoaRegion$code==msoa,],msoaHouseholds))
 
 # TODO work out how to get one per MSOA
 # TODO extend to national
@@ -277,7 +281,7 @@ if (file.exists(rdsfile)) {
   saveRDS(routes, file=rdsfile)
 }
 
-map = leaflet() %>% addTiles() %>% addPolylines(data = routes, opacity = 0.05)
+map = leaflet() %>% addTiles() %>% addPolylines(data = routes, opacity = 0.05) %>% addPolylines(data=sp_msoaRegion, weight=2, color="green")
 
 #library(tmap)
 
