@@ -1,6 +1,7 @@
 setwd("~/dev/CatchDat/MSMCity/")
 source("./R/api/NomiswebApi.R")
 
+
 # if you have one, put your nomisweb API key in .Renviron
 
 library(dplyr)
@@ -231,7 +232,7 @@ MSOA <- st_transform(MSOA, latlong)
 
 msoaRegion=MSOA[grepl(region, MSOA$name),]
 
-
+sp_msoa = as(MSOA, "Spatial")
 sp_msoaRegion = as(msoaRegion, "Spatial")
 
 # OD for a single MSOA (the last one from the loop above for now)
@@ -242,12 +243,12 @@ msoapop = sum(pop$`sum(OBS_VALUE)`)
 msoaRegionHh = getMSOAHouseholds(origins)
 msoaHouseholds = msoaRegionHh[msoaRegionHh$GEOGRAPHY_CODE==msoa,2]
 sp_randHomes = spsample(sp_msoaRegion[sp_msoaRegion$code==msoa,],msoaHouseholds,"random")
-randHomes = st_sfc(st_poly_sample(msoaRegion[sp_msoaRegion$code==msoa,],msoaHouseholds))
+randHomes = st_sfc(st_my_poly_sample(msoaRegion[sp_msoaRegion$code==msoa,],msoaHouseholds))
 
 # TODO work out how to get one per MSOA
 # TODO extend to national
 # one workplace per msoa for now
-randWorks = st_poly_sample(msoaRegion, 1) # fix
+randWorks = st_my_poly_sample(msoaRegion, 1) # fix
 sp_randWorks = spsample(sp_msoaRegion,1,"random")
 
 # # visualise results
@@ -296,3 +297,42 @@ for (i in 1:length(regionalAppUsers)) {
   cat(i)
   map = map %>% addPolylines(data = trip, color="#F00")
 }
+
+map
+
+# pick a home region
+
+singleMsoa = "E02001736"
+oMsoa = allod[allod$CURRENTLY_RESIDING_IN_CODE == singleMsoa,]
+# filter out non-geographic msoas
+oMsoa = oMsoa[grepl("^E", oMsoa$PLACE_OF_WORK_CODE),]
+
+map2 = leaflet() %>% addTiles() %>% addPolylines(data=sp_msoaRegion[sp_msoaRegion$code==singleMsoa,], weight=2, color="green")
+
+# TODO all *destination* MSOAs, not just those in Newcastle
+#for (i in 1:nrow(oMsoa)) {
+for (i in 1:1) {
+  for (j in 1:oMsoa$OBS_VALUE[i]) {
+    print(paste(i,j,oMsoa$CURRENTLY_RESIDING_IN_CODE[i], oMsoa$PLACE_OF_WORK_CODE[i]))
+	oRand = spsample(sp_msoaRegion[sp_msoaRegion$code==oMsoa$CURRENTLY_RESIDING_IN_CODE[i],],1,"random", iter=10)
+	dRand = spsample(sp_msoa[sp_msoa$code==oMsoa$PLACE_OF_WORK_CODE[i],],1,"random", iter=10)
+	#oRand = st_my_poly_sample(msoaRegion[oMsoa$CURRENTLY_RESIDING_IN_CODE[i],], 1)
+    #dRand = st_my_poly_sample(msoaRegion[oMsoa$PLACE_OF_WORK_CODE[i],], 1)
+
+    #print(unname(as(oRand, "Spatial")@coords))
+    #print(unname(as(dRand, "Spatial")@coords))
+    #trip=route_graphhopper(from=as(oRand, "Spatial"),to=as(dRand, "Spatial"))
+    trip=route_graphhopper(from=oRand@coords,to=dRand@coords)
+	  map2 = map2 %>% addPolylines(data = trip, opacity = 0.05)
+  }
+}
+
+#inds = sum(allSynPop[allSynPop$Origin==singleMsoa,]$NumPeople)
+#randHomes = st_poly_sample(msoaRegion[msoaRegion$code==singleMsoa,], inds)
+#for (i in 1:length(randHomes)) {
+#  trip=route_graphhopper(from=c(regionalAppUsers$HomeLon[i],regionalAppUsers$HomeLat[i]),to=c(regionalAppUsers$WorkLon[i],regionalAppUsers$WorkLat[i]))
+#  cat(i)
+#  map = map %>% addPolylines(data = trip, color="#F00")
+#}
+
+
