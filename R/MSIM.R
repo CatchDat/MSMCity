@@ -1,5 +1,5 @@
 setwd("~/dev/CatchDat/MSMCity/")
-source("api/NomiswebApi.R")
+source("./R/api/NomiswebApi.R")
 
 # if you have one, put your nomisweb API key in .Renviron
 
@@ -280,6 +280,8 @@ if (file.exists(rdsfile)) {
   routes=line2route(net, route_fun="route_graphhopper")
   saveRDS(routes, file=rdsfile)
 }
+
+library(leaflet)
 
 map = leaflet() %>% addTiles() %>% addPolylines(data = routes, opacity = 0.05) %>% addPolylines(data=sp_msoaRegion, weight=2, color="green")
 
