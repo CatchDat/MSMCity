@@ -310,20 +310,23 @@ oMsoa = oMsoa[grepl("^E", oMsoa$PLACE_OF_WORK_CODE),]
 map2 = leaflet() %>% addTiles() %>% addPolylines(data=sp_msoaRegion[sp_msoaRegion$code==singleMsoa,], weight=2, color="green")
 
 # TODO all *destination* MSOAs, not just those in Newcastle
-#for (i in 1:nrow(oMsoa)) {
-for (i in 1:1) {
+for (i in 1:nrow(oMsoa)) {
+#for (i in 1:1) {
   for (j in 1:oMsoa$OBS_VALUE[i]) {
     print(paste(i,j,oMsoa$CURRENTLY_RESIDING_IN_CODE[i], oMsoa$PLACE_OF_WORK_CODE[i]))
-	oRand = spsample(sp_msoaRegion[sp_msoaRegion$code==oMsoa$CURRENTLY_RESIDING_IN_CODE[i],],1,"random", iter=10)
-	dRand = spsample(sp_msoa[sp_msoa$code==oMsoa$PLACE_OF_WORK_CODE[i],],1,"random", iter=10)
-	#oRand = st_my_poly_sample(msoaRegion[oMsoa$CURRENTLY_RESIDING_IN_CODE[i],], 1)
+    oRand = spsample(sp_msoaRegion[sp_msoaRegion$code==oMsoa$CURRENTLY_RESIDING_IN_CODE[i],],1,"random", iter=10)
+    dRand = spsample(sp_msoa[sp_msoa$code==oMsoa$PLACE_OF_WORK_CODE[i],],1,"random", iter=10)
+    #oRand = st_my_poly_sample(msoaRegion[oMsoa$CURRENTLY_RESIDING_IN_CODE[i],], 1)
     #dRand = st_my_poly_sample(msoaRegion[oMsoa$PLACE_OF_WORK_CODE[i],], 1)
 
     #print(unname(as(oRand, "Spatial")@coords))
     #print(unname(as(dRand, "Spatial")@coords))
     #trip=route_graphhopper(from=as(oRand, "Spatial"),to=as(dRand, "Spatial"))
-    trip=route_graphhopper(from=oRand@coords,to=dRand@coords)
-	  map2 = map2 %>% addPolylines(data = trip, opacity = 0.05)
+    tryCatch({
+      trip = route_graphhopper(from=oRand@coords,to=dRand@coords, vehicle = "car")
+      map2 = map2 %>% addPolylines(data = trip, weight = 2, opacity = 0.05)
+    })
+    # TODO deal with graphhopper errors...
   }
 }
 
