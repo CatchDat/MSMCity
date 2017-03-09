@@ -1,5 +1,6 @@
 setwd("~/dev/CatchDat/MSMCity/")
 source("./R/SynPop.R")
+source("./R/AppUsers.R")
 
 # turn on to enable consistency checks
 debug = 0
@@ -10,23 +11,23 @@ library(dplyr)
 
 region=("Newcastle upon Tyne")
 
-# Get syntetic population
+# Get synthetic population
 # TODO add mode of transport
 synPop = getSynPop(region)
 
 # Add columns
-synPop$OLon = rep(0.0, nrow(synPop))
-synPop$OLat = rep(0.0, nrow(synPop))
-synPop$DLon = rep(0.0, nrow(synPop))
-synPop$DLat = rep(0.0, nrow(synPop))
+synPop$OLon = NA
+synPop$OLat = NA
+synPop$DLon = NA
+synPop$DLat = NA
 synPop$AppUser = rep(0, nrow(synPop))
-
 
 ###############################################################
 
 # Assign app users to synthetic population
 
-
+appUsers = getAppUsers()
+synPop = assignAppUsers(synPop)
 
 #write.csv(allSynPop, "data/msim.csv");
 
