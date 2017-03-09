@@ -133,7 +133,7 @@ getEconData <- function(table, geography, sexes, ages, econ, columns, removeZero
   #&select=geography_code,c_sex_name,c_age_name,economic_activity_name,obs_value"
 
   query <- list(date = "latest",
-                geography = origins,
+                geography = geography,
                 c_sex = sexes,
                 c_age = ages,
                 economic_activity = econ,
