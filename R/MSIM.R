@@ -1,5 +1,7 @@
 setwd("~/dev/CatchDat/MSMCity/")
 source("./R/SynPop.R")
+source("./R/Geography.R")
+source("./R/AppUsers.R")
 
 # turn on to enable consistency checks
 debug = 0
@@ -8,27 +10,30 @@ debug = 0
 
 library(dplyr)
 
-region=("Newcastle upon Tyne")
+region=("Newcastle upon Tyne 002")
 
-# Get syntetic population
+# Get synthetic population
 # TODO add mode of transport
 synPop = getSynPop(region)
 
-# Add columns
-synPop$OLon = rep(0.0, nrow(synPop))
-synPop$OLat = rep(0.0, nrow(synPop))
-synPop$DLon = rep(0.0, nrow(synPop))
-synPop$DLat = rep(0.0, nrow(synPop))
-synPop$AppUser = rep(0, nrow(synPop))
+# Assign (random) OD locations within MSOAs to non-appusers
+
+synPop = assignODRandom(synPop)
+
+# Assign app users to synthetic population (overwrites random ODs)
+
+synPop = assignAppUsers(synPop)
+
+# Save
+
+write.csv(synPop, "data/synPop.csv");
+
+# Assign routes
+
+map = assignRoute(synPop);
 
 
-###############################################################
 
-# Assign app users to synthetic population
-
-
-
-#write.csv(allSynPop, "data/msim.csv");
 
 # # This is output from Charlotte's AppUsers.R
 # appUsers <- read.csv("./data/appUsers.csv");

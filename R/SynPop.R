@@ -114,5 +114,8 @@ getSynPop = function(region) {
 
   synPop = synPop[rep(1:nrow(synPop), synPop[["NumPeople"]]),]
   synPop$NumPeople = NULL
+
+  synPop$Mode = NA # mode of transport (for future use)
+
   return(synPop)
 }
