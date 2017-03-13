@@ -38,12 +38,10 @@ Automated download (and cacheing of) census data from www.nomisweb.co.uk.
 Generate synthetic population categorised on sex, age band, economic activity type, from census data
 Assign home location randomly within MSOA (will not match distribution of household sizes)
 
-Assign cleaned app user data to the synthetic population. (Map home loc to closest random microsim home point?)
+Assign cleaned app user data to the synthetic population. 
 
 Create OD matrix based on 
-1. initially one home location per MSOA. 
-2. spread population by assigning home location to randomly sampled points within MSOA (using no. of households in MSOA)
-3. Single workplace
+1. home and work locations either determined from app data, or randomly sampled within MSOA. 
 
 
 ## Detail
@@ -56,12 +54,38 @@ Create OD matrix based on
 
 2. Query table to determine what fields (columns) available.
 
-3. Construct appropriate queries and retrieve data. Data is cached locally to reduce load on remote server. 
+3. Construct appropriate queries and retrieve data. Since census data is essentially static it is cached locally to reduce load on remote server. 
 (The service requires an API key for unlimited downloads - without this results can be truncated)
-
 
 ### Routing API
 
-3. Construct appropriate queries and retrieve data. Data is cached locally to reduce load on remote server. 
+3. Construct appropriate queries and retrieve data. Again data is cached locally to reduce load on remote server. 
 (The service requires an API key and queries are limited to a daily maximum)
+
+## Algorithm
+
+1. Select Region
+
+2. Construct queries to collect the following data:
+- MSOAs within region
+- per MSOA (working) population data: age band, gender, economic activity type, workplace MSOA, normal mode of transport
+
+3. Synthesise population 
+
+4. Extract users from app data, including age band, gender, (economic activity assumed), lon/lat of home and work
+
+5. Assign users to synthetic population
+
+4. For remainder of population, sample and assign OD points (randomly) within each MSOA
+
+5. Use routing API to generate routes
+
+6. Plot routes
+
+
+
+
+
+
+
 
