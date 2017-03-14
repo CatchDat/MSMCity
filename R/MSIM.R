@@ -16,12 +16,10 @@ region=("Newcastle upon Tyne 002")
 # TODO add mode of transport
 synPop = getSynPop(region)
 
-# Assign (random) OD locations within MSOAs to non-appusers
-
+# Assign (random) OD locations within MSOAs to entire population
 synPop = assignODRandom(synPop)
 
 # Assign app users to synthetic population (overwrites random ODs)
-
 synPop = assignAppUsers(synPop)
 
 # Save
@@ -30,9 +28,12 @@ write.csv(synPop, "data/synPop.csv");
 
 # Assign routes
 
-map = assignRoute(synPop);
+#map = assignRoute(synPop)
+mapO = plotOrigins(synPop)
+mapD = plotDests(synPop)
 
-
+# appUsers = getAppUsers()
+# synPop = assignAppUsers(synPop)
 
 
 # # This is output from Charlotte's AppUsers.R

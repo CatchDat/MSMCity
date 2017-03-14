@@ -5,6 +5,10 @@
 # - MSOA shape file
 # - API key for graphhopper
 
+library(sf)
+library(leaflet)
+library(stplanr)
+
 assignODRandom = function(synPop) {
 
   # Add or reset columns
@@ -49,19 +53,35 @@ assignRoute = function(synPop) {
 
   # TODO mode of transport
   map = leaflet() %>% addTiles()
+  mapO = leaflet() %>% addTiles()
+  mapD = leaflet() %>% addTiles()
 
   for (i in 1:nrow(synPop)) {
 #  for (i in 1:30) {
     #synPop$Route[i] =
     o = c(synPop$OLon[i], synPop$OLat[i])
     d = c(synPop$DLon[i], synPop$DLat[i])
+    mapO = mapO %>% addCircleMarkers(mapO, lat=synPop$OLon, lng=synPop$OLat, radius =1)
     print(i)
     if (o[1] != d[1] | o[2] != d[2]) {
       e = tryCatch({
           map = map %>% addPolylines(data = route_graphhopper(from=o, to=d, vehicle = "car"), weight = 2, opacity = 0.2)
-        }, error = function(e){e})
+        }, error = function(e){print(e)})
     }
   }
   return(map)
 }
 
+# TODO heat map
+plotOrigins = function(synPop) {
+  mapO = leaflet() %>% addTiles()
+  mapO = mapO %>% addCircleMarkers(mapO, lat=synPop$OLat, lng=synPop$OLon, radius =1)
+  return(mapO)
+}
+
+# TODO heat map
+plotDests = function(synPop) {
+  mapD = leaflet() %>% addTiles()
+  mapD = mapD %>% addCircleMarkers(mapD, lat=synPop$DLat, lng=synPop$DLon, radius =1)
+  return(mapD)
+}

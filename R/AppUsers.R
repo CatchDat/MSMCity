@@ -1,6 +1,5 @@
 
 
-
 assignAppUsers = function(synPop) {
 
   # This is output from Charlotte's AppUsers.R
@@ -28,7 +27,6 @@ assignAppUsers = function(synPop) {
   if (nrow(regionalAppUsers) == 0) {
     return(synPop)
   }
-
 
   #Read in home and work locations
   homeLocs = read.csv("./data/HomeLocations_minReqObsvs10.csv")
@@ -73,7 +71,6 @@ assignAppUsers = function(synPop) {
                                regionalAppUsers$WorkLat[i],
                                agentId))
     }
-
   }
   return(synPop)
 }
