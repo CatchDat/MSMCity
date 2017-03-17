@@ -53,15 +53,11 @@ assignRoute = function(synPop) {
 
   # TODO mode of transport
   map = leaflet() %>% addTiles()
-  mapO = leaflet() %>% addTiles()
-  mapD = leaflet() %>% addTiles()
 
   for (i in 1:nrow(synPop)) {
 #  for (i in 1:30) {
-    #synPop$Route[i] =
     o = c(synPop$OLon[i], synPop$OLat[i])
     d = c(synPop$DLon[i], synPop$DLat[i])
-    mapO = mapO %>% addCircleMarkers(mapO, lat=synPop$OLon, lng=synPop$OLat, radius =1)
     print(i)
     if (o[1] != d[1] | o[2] != d[2]) {
       e = tryCatch({
@@ -75,13 +71,24 @@ assignRoute = function(synPop) {
 # TODO heat map
 plotOrigins = function(synPop) {
   mapO = leaflet() %>% addTiles()
-  mapO = mapO %>% addCircleMarkers(mapO, lat=synPop$OLat, lng=synPop$OLon, radius =1)
+  mapO = mapO %>% addCircles(mapO, lat=synPop$OLat, lng=synPop$OLon, radius =1)
   return(mapO)
 }
 
 # TODO heat map
 plotDests = function(synPop) {
   mapD = leaflet() %>% addTiles()
-  mapD = mapD %>% addCircleMarkers(mapD, lat=synPop$DLat, lng=synPop$DLon, radius =1)
+  mapD = mapD %>% addCircles(mapD, lat=synPop$DLat, lng=synPop$DLon, radius =1)
   return(mapD)
+}
+
+library(KernSmooth)
+heatMap = function(lon, lat) {
+  kde2d=bkde2D(cbind(lon,lat), bandwidth=c(1, 1),gridsize=c(1001,1001))
+  x=kde2d$x1
+  y=kde2d$x2
+  z=kde2d$fhat
+  cl=contourLines(x , y , z)
+  hm = leaflet() %>% addTiles() %>% addPolygons(cl[[5]]$x,cl[[5]]$y)
+  return(hm)
 }

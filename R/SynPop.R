@@ -13,6 +13,8 @@ getSynPop = function(region) {
   # Get OD data
   allod = getODData("NM_1228_1", origins, destinations, columns)
 
+  allTravelModes = getWorkTravelModes(origins)
+
   sexes = "1, 2"
   ages = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
   economic_activity = "4, 5, 7, 8"
@@ -52,13 +54,23 @@ getSynPop = function(region) {
   regionMsoas = unique(regionPop$GEOGRAPHY_CODE)
 
   # define table
-  synPop=data.frame(Origin=character(), Dest=character(), Age=character(), Sex=character(), Econ=character(), NumPeople=numeric(), stringsAsFactors = FALSE)
+  synPop=data.frame(Origin=character(), Dest=character(), Age=character(), Sex=character(), Econ=character(), Travel=character(), NumPeople=numeric(), stringsAsFactors = FALSE)
 
   # loop over origins
   for (msoa in regionMsoas) {
   #msoa = "E02001718" {
     print(msoa)
     msoaPop = regionPop[regionPop$GEOGRAPHY_CODE==msoa,]
+    msoaTravel = allTravelModes[allTravelModes$GEOGRAPHY_CODE==msoa,]
+
+    # Adjust msoaTravel if there is a population deficit
+    deficit = sum(msoaPop$`sum(OBS_VALUE)`)- sum(msoaTravel$OBS_VALUE)
+    # TODO how to deal with surplus??
+    stopifnot(deficit >= 0)
+    if (deficit > 0) {
+      msoaTravel = rbind(msoaTravel, c(msoa, "UNKNOWN", "UNKNOWN", deficit))
+    }
+
     od = allod[allod$CURRENTLY_RESIDING_IN_CODE==msoa,]
     print(paste("Working population (msoaPop)", sum(msoaPop$`sum(OBS_VALUE)`)))
     print(paste("Working population (od)", sum(od$OBS_VALUE)))
@@ -87,7 +99,9 @@ getSynPop = function(region) {
 
     dests = od$OBS_VALUE
 
-    msim = humanleague::synthPop(list(dests, age, sex, econ))
+    modes = as.numeric(msoaTravel$OBS_VALUE)
+
+    msim = humanleague::synthPop(list(dests, age, sex, econ, modes))
     #print(paste("Conv ", msim$conv))
     if (!msim$conv) {
       print("humanleague::synthPop not converged!")
@@ -96,10 +110,23 @@ getSynPop = function(region) {
     indices=which(msim$x.hat > 1e-2, arr.ind=T)
     values=msim$x.hat[indices]
 
+    # Take care here - ensure hard-coded categories match values
+    # TODO inconsistency here as (non-geographic) destination can encode mode of travel
+    # i.e could have people who work from home driving a van, or people who
+    # walk vast distances to work
+
     sexes = c("F", "M")
     ages = c("16-24", "25-34", "35-44", "45-54", "55-64", "65+")
     econs = c("E FT", "E PT", "S FT", "S PT")
-    msoaSynPop=data.frame(Origin=rep(msoa, length(values)), Dest=od$PLACE_OF_WORK_CODE[indices[,1]], Age=ages[indices[,2]], Sex=sexes[indices[,3]], Econ=msoaPop$ECONOMIC_ACTIVITY_NAME[indices[,4]], NumPeople=values, stringsAsFactors = FALSE)
+    modes = msoaTravel$CELL_NAME
+    msoaSynPop=data.frame(Origin=rep(msoa, length(values)),
+                          Dest=od$PLACE_OF_WORK_CODE[indices[,1]],
+                          Age=ages[indices[,2]],
+                          Sex=sexes[indices[,3]],
+                          Econ=msoaPop$ECONOMIC_ACTIVITY_NAME[indices[,4]],
+                          Travel=modes[indices[,5]],
+                          NumPeople=values,
+                          stringsAsFactors = FALSE)
 
     if (debug) {
       # double-check synPop matches marginals
@@ -114,8 +141,6 @@ getSynPop = function(region) {
 
   synPop = synPop[rep(1:nrow(synPop), synPop[["NumPeople"]]),]
   synPop$NumPeople = NULL
-
-  synPop$Mode = NA # mode of transport (for future use)
 
   return(synPop)
 }

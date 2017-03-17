@@ -190,7 +190,7 @@ cachedApiCall <- function(table, query, format) {
 getWorkTravelModes <- function(geography) {
   table = "NM_568_1"
   query <- list(date = "latest",
-                geography = origins,
+                geography = geography,
                 measures = "20100",
                 rural_urban = "0",
                 cell = "1...11",

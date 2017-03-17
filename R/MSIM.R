@@ -10,20 +10,25 @@ debug = 0
 
 library(dplyr)
 
-region=("Newcastle upon Tyne 002")
+region=("Newcastle upon Tyne 00")
+print(paste("Region: ", region))
 
 # Get synthetic population
 # TODO add mode of transport
+print("Synthesising population")
 synPop = getSynPop(region)
 
 # Assign (random) OD locations within MSOAs to entire population
+print("Assigning ODs")
 synPop = assignODRandom(synPop)
 
 # Assign app users to synthetic population (overwrites random ODs)
+print("Overlaying app users")
 synPop = assignAppUsers(synPop)
 
 # Save
 
+print("Saving data")
 write.csv(synPop, "data/synPop.csv");
 
 # Assign routes

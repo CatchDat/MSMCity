@@ -1,5 +1,5 @@
 
-
+# Assigns app users within the synPop region to synPop
 assignAppUsers = function(synPop) {
 
   # This is output from Charlotte's AppUsers.R
@@ -74,3 +74,31 @@ assignAppUsers = function(synPop) {
   }
   return(synPop)
 }
+
+
+# Returns all app users without geographic info
+allAppUsers = function() {
+
+  appUsersAllData = read.csv("./data/appUsers.csv");
+
+  appUsers = data.frame("agentId" = appUsersAllData$agentID,
+                        "gender" = appUsersAllData$gender,
+                        "age_band" = appUsersAllData$age_band)
+  # assume for now all employed f/t
+  appUsers$econ = rep("E FT", nrow(appUsers));
+
+  # rename some values for consistency
+  appUsers$age_band[appUsers$age_band == 1] = "16-24"
+  appUsers$age_band[appUsers$age_band == 2] = "25-34"
+  appUsers$age_band[appUsers$age_band == 3] = "35-44"
+  appUsers$age_band[appUsers$age_band == 4] = "45-54"
+  appUsers$age_band[appUsers$age_band == 5] = "55-64"
+  appUsers$age_band[appUsers$age_band == 6] = "65+"
+  appUsers$gender = as.character(appUsers$gender)
+  appUsers$gender[appUsers$gender == "female"] = "F"
+  appUsers$gender[appUsers$gender == "male"] = "M"
+
+  # remove users with missing age/sex data
+  return(appUsers[complete.cases(appUsers),])
+}
+
