@@ -10,13 +10,21 @@ debug = 0
 
 library(dplyr)
 
-region=("Newcastle upon Tyne 00")
-print(paste("Region: ", region))
+#regions=c("Newcastle upon Tyne")
+#regions=c("Barking and Dagenham")
+regions=allEnglandAndWales()
+synPop = data.frame()
 
-# Get synthetic population
-# TODO add mode of transport
-print("Synthesising population")
-synPop = getSynPop(region)
+# nationwide queries are too long for nomisweb, need to break down into chunks
+for (i in 1:length(regions)) {
+  region=regions[i]
+  print(paste("Region: ", region))
+
+  # Get synthetic population
+  # TODO add mode of transport
+  print("Synthesising population")
+  synPop = rbind(synPop, getSynPop(region))
+}
 
 # Assign (random) OD locations within MSOAs to entire population
 print("Assigning ODs")
@@ -39,7 +47,6 @@ mapD = plotDests(synPop)
 
 # appUsers = getAppUsers()
 # synPop = assignAppUsers(synPop)
-
 
 # # This is output from Charlotte's AppUsers.R
 # appUsers <- read.csv("./data/appUsers.csv");

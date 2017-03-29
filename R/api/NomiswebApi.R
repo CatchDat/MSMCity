@@ -16,7 +16,7 @@ library(rjson)
 nomisUrl <- "https://www.nomisweb.co.uk/"
 
 # Store your api key in .Renviron
-apiKey = Sys.getenv("NOMIS_API_KEY")
+nomisApiKey = Sys.getenv("NOMIS_API_KEY")
 
 getMetadata <- function(tableName) {
   # hard code measures (not sure what it defines)
@@ -58,7 +58,7 @@ getMSOAs <- function(queryString) {
 
   query <- list(search = queryString)
 
-  if (apiKey == "") {
+  if (nomisApiKey == "") {
     warning("Warning, no API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key and add NOMIS_API_KEY=<key> to your .Renviron")
   }
   queryUrl <- httr::modify_url(nomisUrl, path = "/api/v01/dataset/NM_1_1/geography/2092957703TYPE297.def.sdmx.json", query = query)
@@ -95,8 +95,8 @@ getODData <- function(table, origins, destinations, columns, removeZeroObs = TRU
                place_of_work = destinations,
                measures = "20100",
                select = columns,
-               uid = apiKey)
-  # if (apiKey == "") {
+               uid = nomisApiKey)
+  # if (nomisApiKey == "") {
   #   warning("Warning, no API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key")
   # }
   #
@@ -139,7 +139,7 @@ getEconData <- function(table, geography, sexes, ages, econ, columns, removeZero
                 economic_activity = econ,
                 measures = "20100",
                 select = columns,
-                uid = apiKey)
+                uid = nomisApiKey)
 
   # would be far more efficient if we could tell the API not to send zero value rows...
   result = cachedApiCall(table, query, format)
@@ -158,7 +158,7 @@ getMSOAHouseholds <- function(geography) {
                 rural_urban = "0",
                 c_hhchuk11 = "0",
                 select = "GEOGRAPHY_CODE,OBS_VALUE",
-                uid = apiKey)
+                uid = nomisApiKey)
 
   #       data: 'date=latest&geography=1245714681...1245714688&rural_urban=0&c_hhchuk11=0&measures=20100&select=geography_code,obs_value',
   # https://www.nomisweb.co.uk/api/v01/dataset/NM_513_1.data.tsv?date=latest&geography=1245714681...1245714688&rural_urban=0&c_hhchuk11=0&measures=20100&select=geography_code,obs_value
@@ -167,7 +167,7 @@ getMSOAHouseholds <- function(geography) {
 }
 
 cachedApiCall <- function(table, query, format) {
-  if (apiKey == "") {
+  if (nomisApiKey == "") {
     warning("Warning, no API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key and add NOMIS_API_KEY=<key> to your .Renviron")
   }
 
@@ -195,7 +195,7 @@ getWorkTravelModes <- function(geography) {
                 rural_urban = "0",
                 cell = "1...11",
                 select = "GEOGRAPHY_CODE,CELL_NAME,CELL_CODE,OBS_VALUE",
-                uid = apiKey)
+                uid = nomisApiKey)
 
   # e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_568_1.data.tsv?date=latest&geography=1245714681...1245714688&rural_urban=0&cell=1...11&measures=20100&uid=0xc14c302649583b1151acd1a5d318ae767d4c8e8f
 

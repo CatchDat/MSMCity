@@ -1,7 +1,7 @@
 
 # Transport API query builder
 appId = "817c6039" # Catch!
-apiKey = Sys.getenv("TRANSPORT_API")
+transportApiKey = Sys.getenv("TRANSPORT_API")
 
 transportApiUrl = "http://transportapi.com/v3/uk/"
 
@@ -11,7 +11,7 @@ transportApiJourneyQuery = function(oLonLat, dLonLat, mode) {
                "/to/lonlat:", dLonLat[1], ",", dLonLat[2], ".json")
 
   # region field can be either "southeast" or "tfl" but appears not to serve any useful purpose
-  query = list(region = "southeast", app_id = appId, app_key = apiKey)
+  query = list(region = "southeast", app_id = appId, app_key = transportApiKey)
 
   request = httr::GET(url=transportApiUrl, path = path, query = query)
   print(request$request$url)

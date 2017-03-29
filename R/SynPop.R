@@ -72,10 +72,12 @@ getSynPop = function(region) {
     }
 
     od = allod[allod$CURRENTLY_RESIDING_IN_CODE==msoa,]
-    print(paste("Working population (msoaPop)", sum(msoaPop$`sum(OBS_VALUE)`)))
-    print(paste("Working population (od)", sum(od$OBS_VALUE)))
-    if (debug)
-      stopifnot(sum(msoaPop$`sum(OBS_VALUE)`) == sum(od$OBS_VALUE))
+    #print(paste("Working population (msoaPop)", sum(msoaPop$`sum(OBS_VALUE)`)))
+    #print(paste("Working population (od)", sum(od$OBS_VALUE)))
+    if (sum(msoaPop$`sum(OBS_VALUE)`) != sum(od$OBS_VALUE)) {
+      print(paste("OD v POP mismatch:", sum(od$OBS_VALUE), " and ", sum(msoaPop$`sum(OBS_VALUE)`)))
+      next
+    }
 
     # possible not necessary of better way to get round issue with sum column
     msoaPop$OBS_VALUE=msoaPop$`sum(OBS_VALUE)`
