@@ -13,7 +13,7 @@
 library(digest)
 library(rjson)
 
-baseUrl <- "https://www.nomisweb.co.uk/"
+nomisUrl <- "https://www.nomisweb.co.uk/"
 
 # Store your api key in .Renviron
 apiKey = Sys.getenv("NOMIS_API_KEY")
@@ -23,7 +23,7 @@ getMetadata <- function(tableName) {
 
   query <- list(search = paste0("*", tableName, "*"))
 
-  queryUrl <- httr::modify_url(baseUrl, path = "api/v01/dataset/def.sdmx.json", query = query)
+  queryUrl <- httr::modify_url(nomisUrl, path = "api/v01/dataset/def.sdmx.json", query = query)
   result <- fromJSON(file=queryUrl)
   table <- result$structure$keyfamilies$keyfamily[[1]]$id
   #return(result$structure$keyfamilies$keyfamily[[1]])
@@ -32,7 +32,7 @@ getMetadata <- function(tableName) {
 
   # Get fields
   # e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1.def.sdmx.json
-  queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, ".def.sdmx.json"))
+  queryUrl <- httr::modify_url(nomisUrl, path = paste0("api/v01/dataset/", table, ".def.sdmx.json"))
   #print(queryUrl)
   result <- fromJSON(file=queryUrl)
   print("Fields:")
@@ -42,7 +42,7 @@ getMetadata <- function(tableName) {
     print(paste0("  ", field))
     # Get values
     # e.g. https://www.nomisweb.co.uk/api/v01/dataset/NM_792_1/C_AGE.def.sdmx.json
-    queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, "/", field, ".def.sdmx.json"))
+    queryUrl <- httr::modify_url(nomisUrl, path = paste0("api/v01/dataset/", table, "/", field, ".def.sdmx.json"))
     result <- fromJSON(file=queryUrl)
     values <- result$structure$codelists$codelist[[1]]$code
     for (j in 1:length(values)) {
@@ -61,7 +61,7 @@ getMSOAs <- function(queryString) {
   if (apiKey == "") {
     warning("Warning, no API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key and add NOMIS_API_KEY=<key> to your .Renviron")
   }
-  queryUrl <- httr::modify_url(baseUrl, path = "/api/v01/dataset/NM_1_1/geography/2092957703TYPE297.def.sdmx.json", query = query)
+  queryUrl <- httr::modify_url(nomisUrl, path = "/api/v01/dataset/NM_1_1/geography/2092957703TYPE297.def.sdmx.json", query = query)
 
   #print(queryUrl)
 
@@ -87,7 +87,7 @@ getMSOAs <- function(queryString) {
 
 
 getODData <- function(table, origins, destinations, columns, removeZeroObs = TRUE, format = "tsv") {
-  #baseUrl <- "https://www.nomisweb.co.uk/"
+  #nomisUrl <- "https://www.nomisweb.co.uk/"
   # hard code measures (not sure what it defines)
 
   query <- list(date = "latest",
@@ -100,7 +100,7 @@ getODData <- function(table, origins, destinations, columns, removeZeroObs = TRU
   #   warning("Warning, no API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key")
   # }
   #
-  # queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, ".data.", format), query = query)
+  # queryUrl <- httr::modify_url(nomisUrl, path = paste0("api/v01/dataset/", table, ".data.", format), query = query)
   #
   # filename <- paste0("./data/", digest(queryUrl, "md5"), ".", format)
   # # used cached data if available, otherwise download. md5sum should ensure data file exactly matches query
@@ -119,7 +119,7 @@ getODData <- function(table, origins, destinations, columns, removeZeroObs = TRU
 }
 
 getEconData <- function(table, geography, sexes, ages, econ, columns, removeZeroObs = TRUE, format = "tsv") {
-  #baseUrl <- "https://www.nomisweb.co.uk/"
+  #nomisUrl <- "https://www.nomisweb.co.uk/"
 
   # hard code measures (not sure what it defines)
 
@@ -171,7 +171,7 @@ cachedApiCall <- function(table, query, format) {
     warning("Warning, no API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key and add NOMIS_API_KEY=<key> to your .Renviron")
   }
 
-  queryUrl <- httr::modify_url(baseUrl, path = paste0("api/v01/dataset/", table, ".data.", format), query = query)
+  queryUrl <- httr::modify_url(nomisUrl, path = paste0("api/v01/dataset/", table, ".data.", format), query = query)
 
   #print(queryUrl)
 

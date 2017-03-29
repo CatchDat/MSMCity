@@ -3,7 +3,10 @@
 
 # Requires:
 # - MSOA shape file
-# - API key for graphhopper
+# - API key for graphhopper/transportAPI
+
+source("./R/Travel.R")
+source("./R/api/TransportApi.R")
 
 library(sf)
 library(leaflet)
@@ -47,26 +50,48 @@ assignODRandom = function(synPop) {
   }
   return(synPop)
 }
+#
+# # TODO how do I create a collection of (or append routes to) a SLDF?
+# assignRoute = function(synPop) {
+#
+#   # TODO mode of transport
+#   map = leaflet() %>% addTiles()
+#
+#   for (i in 1:nrow(synPop)) {
+# #    Sys.sleep(1)
+# #  for (i in 1:30) {
+#     o = c(synPop$OLon[i], synPop$OLat[i])
+#     d = c(synPop$DLon[i], synPop$DLat[i])
+#     print(i)
+#     if (road & (o[1] != d[1] | o[2] != d[2])) {
+#       e = tryCatch({
+#           map = map %>% addPolylines(data = route_graphhopper(from=o, to=d, vehicle = "car"), weight = 2, opacity = 0.2)
+#         }, error = function(e){print(e)})
+#     }
+#   }
+#   return(map)
+# }
 
-# TODO how do I create a collection of (or append routes to) a SLDF?
+
 assignRoute = function(synPop) {
 
-  # TODO mode of transport
   map = leaflet() %>% addTiles()
 
   for (i in 1:nrow(synPop)) {
-#  for (i in 1:30) {
+#  for (i in 1:10) {
     o = c(synPop$OLon[i], synPop$OLat[i])
     d = c(synPop$DLon[i], synPop$DLat[i])
+    m = censusToTransportApiMode(synPop$Travel[i])
     print(i)
-    if (o[1] != d[1] | o[2] != d[2]) {
+    if ((o[1] != d[1] | o[2] != d[2])) {
       e = tryCatch({
-          map = map %>% addPolylines(data = route_graphhopper(from=o, to=d, vehicle = "car"), weight = 2, opacity = 0.2)
+          map = map %>% addPolylines(data = transportApiJourneyQuery(o, d, m), weight = 2, opacity = 0.2)
         }, error = function(e){print(e)})
     }
   }
   return(map)
 }
+
 
 # TODO heat map
 plotOrigins = function(synPop) {

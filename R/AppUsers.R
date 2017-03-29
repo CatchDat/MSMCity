@@ -47,7 +47,9 @@ assignAppUsers = function(synPop) {
     matches = which(synPop$Origin == regionalAppUsers$HomeMSOA[i]
          & synPop$Dest == regionalAppUsers$WorkMSOA[i]
          & synPop$Sex == regionalAppUsers$gender[i]
-         & synPop$Age == regionalAppUsers$age_band[i])
+         & synPop$Age == regionalAppUsers$age_band[i]
+         # TODO better match to appuser data?
+         & synPop$Travel != "Work mainly at or from home")
 
     #cat(matches)
 
