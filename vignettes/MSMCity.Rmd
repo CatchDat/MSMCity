@@ -10,12 +10,17 @@ Only economically active people (according to census data) are considered.
 User data comprises of home and work locations, plus timestamped breadcrumb data, mode of travel
 
 ### Data Sources
-1. Census data: MSOA-level populations with the following characteristics: 
-- sex
-- age band (6 levels)
-- economic activity (full/part-time (self) employed)
+
+
+1. Census data from nomisweb.co.uk, using RESTful API: 
+
+MSOA-level populations with the following characteristics: 
+- gender
+- age band (6 categories: 16-24, 25-34, 35-44, 45-54, 55-64, 65+)
+- economic activity (4 categories: full/part-time (self) employed)
 - number of households per MSOA
 - MSOA of workplace
+- Commute mode of transport
 
 (number of workplaces per MSOA would be useful)
 
@@ -24,16 +29,25 @@ User data comprises of home and work locations, plus timestamped breadcrumb data
 - work lat/long
 - timestamped breadcrumb data
 - mode of travel?
+- gender
+- age mapped to age band
 
 Approximately 5000 working population per MSOA
-Approximately 5000 houeholds per MSOA
+Approximately 5000 households per MSOA
 
+3. Routing data from transportAPI.com, using RESTful API.
+- Restricted to 1000 queries per day
 
 ## Methodology
 
 ### Microsimulation
 
-Automated download (and cacheing of) census data from www.nomisweb.co.uk.
+Automated download (and cacheing of) census data from www.nomisweb.co.uk, at mid-layer super output area (MSOA) level, queried by local authority.
+
+- MSOAs within local authority.
+- Origin-destination data per MSOA (no breakdown available).
+- Economic data, broken down by gender, economic activity type, and age band.
+- Households per MSOA.
 
 Generate synthetic population categorised on sex, age band, economic activity type, from census data
 Assign home location randomly within MSOA (will not match distribution of household sizes)
@@ -84,7 +98,11 @@ Create OD matrix based on
 
 
 
+# References
 
+https://developer.transportapi.com/docs?raml=https://transportapi.com/v3/raml/transportapi.raml
+
+https://www.nomisweb.co.uk/api/v01/help
 
 
 
