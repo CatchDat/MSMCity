@@ -26,7 +26,7 @@ censusToTransportApiMode = function(censusModeString)
            censusModeString == "On foot")
     return("cycle")
   # "Work mainly at or from home"/"Other method of travel to work"/"UNKNOWN"
-  else return(NA)
+  else return("none")
 }
 
 

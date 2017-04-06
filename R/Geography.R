@@ -73,23 +73,39 @@ assignODRandom = function(synPop) {
 # }
 
 
-assignRoute = function(synPop) {
+assignRoute = function(synPop, stride) {
 
   map = leaflet() %>% addTiles()
 
-  for (i in 1:nrow(synPop)) {
+  for (i in seq(from=1, to=nrow(synPop), by=stride)) {
 #  for (i in 1:10) {
     o = c(synPop$OLon[i], synPop$OLat[i])
     d = c(synPop$DLon[i], synPop$DLat[i])
     m = censusToTransportApiMode(synPop$Travel[i])
+    colour = "green" # Green for cycle
+
+    if (m == "car") {
+      colour = "red" # Red for car
+    } else if (m == "public") {
+      colour = "blue"
+    }
+
     print(i)
     if ((o[1] != d[1] | o[2] != d[2])) {
       e = tryCatch({
-          map = map %>% addPolylines(data = transportApiJourneyQuery(o, d, m), weight = 2, opacity = 0.2)
+          map = map %>% addPolylines(data = transportApiJourneyQuery(o, d, m), weight = 2, opacity = 1.0, color=colour)
         }, error = function(e){print(e)})
     }
   }
   return(map)
+}
+
+library(htmlwidgets)
+
+
+saveMap = function(map, filename) {
+  # TODO check for overwrite...
+  saveWidget(map, filename)
 }
 
 

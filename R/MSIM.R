@@ -10,9 +10,12 @@ debug = 0
 
 library(dplyr)
 
-#regions=c("Newcastle upon Tyne")
+#regions=c("Newcastle upon Tyne", "North Tyneside", "Gateshead", "South Tyneside",
+#          "Sunderland")
 #regions=c("Barking and Dagenham")
-regions=allEnglandAndWales()
+#regions=allEnglandAndWales()
+regions=c("Leeds")
+
 synPop = data.frame()
 
 # nationwide queries are too long for nomisweb, need to break down into chunks
