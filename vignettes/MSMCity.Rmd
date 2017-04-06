@@ -1,7 +1,24 @@
+---
+title: "City-wide Microsimulation as a Basis for Agent-Based Modelling"
+author: "Andrew P Smith and Robin Lovelace"
+date: '`r format(Sys.time(), "%B %Y")`'
+output:
+  pdf_document:
+    keep_tex: yes
+    number_sections: yes
+  html_document: default
+bibliography: ref.bib
+autoNumber: all
+vignette: |
+  %\VignetteIndexEntry{City-wide Microsimulation as a Basis for Agent-Based Modelling} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+---
 
-# MSMCity - City-level Commute Microsimulation
+***
+This report presents a methodology to "scale-up" crowdsourced commuter movement data from a small sample to the entire working population, using a process called microsimulation. This upscaled data can then be used as a basis for Agent-Based Modelling (ABM) of commute patterns. Agents are categorised by the following demographic, geographic, and socioeconomic data: gender, age band, home and work locations, mode of travel to work, and economic activity type. The implementation is a software solution that is designed to automate the process as far as is possible, firstly downloading census data, synthesising a population, assigning real users to the population, generating origin-destination matrices, and finally mapping routes to each user, based on their normal commute mode of transport.
 
-## Overview
+***
+
+# Overview
 
 Combine user data harvested from mobile phone app with a simulated population at a city-wide (local authority) level, in order to synthesise an OD matrix of commute patterns. 
 
@@ -9,22 +26,34 @@ Only economically active people (according to census data) are considered.
 
 User data comprises of home and work locations, plus timestamped breadcrumb data, mode of travel
 
+
+## Microsimulation Methodology
+
 ### Data Sources
 
+1. Census data from nomisweb.co.uk, using RESTful API. 
+2. TravelAI app data.
+3. Routing data from transportAPI.com, using RESTful API.
 
-1. Census data from nomisweb.co.uk, using RESTful API: 
+### Resolution
 
-MSOA-level populations with the following characteristics: 
-- gender
+Aggregate census data at MSOA level. Approximately 5000 working population per MSOA
+Approximately 5000 households per MSOA.
+
+Pseudonymised individual-level data from TravelAI. Only about 600 users were present in the supplied dataset.
+
+### Categories
+
+1. Aggregate census data
+- gender (M/F)
 - age band (6 categories: 16-24, 25-34, 35-44, 45-54, 55-64, 65+)
 - economic activity (4 categories: full/part-time (self) employed)
 - number of households per MSOA
 - MSOA of workplace
 - Commute mode of transport
 
-(number of workplaces per MSOA would be useful)
-
-2. TravelAI app data:
+2. TravelAI individual data:
+- anonymised ID
 - home lat/lon
 - work lat/long
 - timestamped breadcrumb data
@@ -32,15 +61,11 @@ MSOA-level populations with the following characteristics:
 - gender
 - age mapped to age band
 
-Approximately 5000 working population per MSOA
-Approximately 5000 households per MSOA
+## Population Synthesis Methodology
 
-3. Routing data from transportAPI.com, using RESTful API.
-- Restricted to 1000 queries per day
+Most, if not all, established techniques (e.g. Iterative Proportional Fitting (IPF)) for population synthesis cannot generate whole-number populations for each category. This is not ideal for ABM applications, which really require whole individuals. Whilst it is possible to "integerise" a non-integral population, this process may not exactly  preserve the original marginal constraints.
 
-## Methodology
-
-### Microsimulation
+This motivated us to develop a novel synthesis technique, using a combination of quasirandom numbers and without-replacement marginal sampling. This technique only produces populations in the integer domain, so is well-suited as a foundation for ABM. The technique is described in (Smith, Lovelace, Birkin unpublished).
 
 Automated download (and cacheing of) census data from www.nomisweb.co.uk, at mid-layer super output area (MSOA) level, queried by local authority.
 
@@ -57,9 +82,6 @@ Assign cleaned app user data to the synthetic population.
 Create OD matrix based on 
 1. home and work locations either determined from app data, or randomly sampled within MSOA. 
 
-
-## Detail
-
 ### Census API
 
 #### Metadata
@@ -71,10 +93,14 @@ Create OD matrix based on
 3. Construct appropriate queries and retrieve data. Since census data is essentially static it is cached locally to reduce load on remote server. 
 (The service requires an API key for unlimited downloads - without this results can be truncated)
 
+NB access to the NomisWeb API requires registration, and posession of an API key.
+
 ### Routing API
 
 3. Construct appropriate queries and retrieve data. Again data is cached locally to reduce load on remote server. 
 (The service requires an API key and queries are limited to a daily maximum)
+
+NB access to the NomisWeb API requires registration, and posession of an API key.
 
 ## Algorithm
 
@@ -96,14 +122,66 @@ Create OD matrix based on
 
 6. Plot routes
 
+# Software Usage
 
+The software is an `R` package, `MSMCity`. Scripts and functions are logically split:
+
+`AppUsers.R`: functions to select app users geographically, and manipulate the data for consistency with census data.
+
+`Geography.R`: functions to assign home and work locations to individuals, route assignment, some visualisation functions, plus a listing of all local authorities in England & Wales.
+
+`MSIM.R`: the main script entry point.
+
+`SynPop.R`: the main microsimulation and population synthesis function.
+
+`Travel.R`: functions to map modes of transport, compatibility between census and transportAPI values.
+
+`api/NomiswebApi.R`: automated downloads of census metadata and data, including: MSOAs by local authority, socioeconomic data, workplace locations, number of households, modes of transport. Downloaded data is cached locally to reduce server load.
+
+`api/TransportApi.R`: automated route generation.
+
+Normal usage would involve editing the array of local authorities defined in `MSIM.R`, e.g.:
+
+```
+regions=c("Newcastle upon Tyne", "North Tyneside", "Gateshead", "South Tyneside",
+          "Sunderland")
+
+```
+for a metropolitan county, or 
+```
+regions=c("Newcastle upon Tyne")
+
+```
+for a single local authority.
+
+The usual practice for API keys in `R` should be adhered to, i.e. they should be added to the user's `.Renviron` file, like so:
+
+```
+NOMIS_API_KEY = 0x0123456789abcdef0123456789abcdef01234567
+TRANSPORT_API = 0123456789abcdef0123456789abcdef
+
+```
+
+# Further Work
+
+## Issues
+- no interdependence between work location and mode of travel. NomisWeb does not have a census table containing both work location (MSOA) and mode of travel to work. When we synthesise a population, we thus cannot impose an interdependence between them. This results in 
+- assigning home/works locations to non-app users.
+- overloading census and routing APIs.
+
+# Online Resources
+
+TransportAPI documentation: https://developer.transportapi.com/docs?raml=https://transportapi.com/v3/raml/transportapi.raml
+
+NomisWeb API documentation: https://www.nomisweb.co.uk/api/v01/help
 
 # References
 
-https://developer.transportapi.com/docs?raml=https://transportapi.com/v3/raml/transportapi.raml
-
-https://www.nomisweb.co.uk/api/v01/help
-
+```{r, echo=FALSE}
+# Get bibliography (run once from project root)
+u = "https://www.zotero.org/api/groups/418217/collections/CXW8CKDW/items/top?limit=100&format=bibtex&v=1"
+b = httr::GET(url = u, httr::write_disk("ref.bib", overwrite = T))
+```
 
 
 
