@@ -83,18 +83,22 @@ assignRoute = function(synPop, stride) {
     d = c(synPop$DLon[i], synPop$DLat[i])
     m = censusToTransportApiMode(synPop$Travel[i])
     colour = "green" # Green for cycle
-
-    if (m == "car") {
-      colour = "red" # Red for car
-    } else if (m == "public") {
-      colour = "blue"
-    }
-
-    print(i)
+    print(m)
     if ((o[1] != d[1] | o[2] != d[2])) {
-      e = tryCatch({
-          map = map %>% addPolylines(data = transportApiJourneyQuery(o, d, m), weight = 2, opacity = 1.0, color=colour)
+      print(i)
+      if (m == "car") {
+        colour = "red" # Red for car
+        e = tryCatch({
+          map = map %>% addPolylines(data = route_graphhopper(from=o, to=d, vehicle = "car"), weight = 2, opacity = 0.5, color=colour)
         }, error = function(e){print(e)})
+      } else {
+        if (m == "public") {
+          colour = "blue"
+        }
+        # e = tryCatch({
+        #     map = map %>% addPolylines(data = transportApiJourneyQuery(o, d, m), weight = 2, opacity = 1.0, color=colour)
+        #   }, error = function(e){print(e)})
+      }
     }
   }
   return(map)
