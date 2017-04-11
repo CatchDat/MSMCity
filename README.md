@@ -6,6 +6,7 @@ Obtain API keys for nomisweb.co.uk, graphhopper.com and transportapi.co
 
 Define a character vector `regions` to cover the area in question, e.g.:
 
+```
 > regions=c("Newcastle upon Tyne", "North Tyneside", "Gateshead", "South Tyneside",
           "Sunderland")
 
