@@ -8,13 +8,22 @@ debug = 0
 
 # if you have one, put your nomisweb API key in .Renviron
 
+if (!exists("regions")) {
+  cat("ERROR: regions is not defined.\nPlease define the variable 'regions' for the simulation (as a character vector)\n")
+  cat("e.g.:\n")
+  cat("> regions = \"Newcastle upon Tyne\"\n")
+  cat("or\n")
+  cat("> regions=c(\"Newcastle upon Tyne\", \"North Tyneside\", \"Gateshead\", \"South Tyneside\", \"Sunderland\")\n")
+  stop()
+}
+
 library(dplyr)
 
 #regions=c("Newcastle upon Tyne", "North Tyneside", "Gateshead", "South Tyneside",
 #          "Sunderland")
 #regions=c("Barking and Dagenham")
 #regions=allEnglandAndWales()
-regions=c("Leeds")
+#regions=c("Bradford 002")
 
 synPop = data.frame()
 

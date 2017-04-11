@@ -12,6 +12,7 @@ library(sf)
 library(leaflet)
 library(stplanr)
 
+
 assignODRandom = function(synPop) {
 
   # Add or reset columns
@@ -33,6 +34,16 @@ assignODRandom = function(synPop) {
 
   # Convert to spatial for graphhopper API
   spMSOA = as(MSOA, "Spatial")
+
+  # oMSOAs = unique(synPop$Origin)
+  #
+  # for (i in 1:length(oMSOAs)) {
+  #   n = sum(synPop$Origin == oMSOAs[i])
+  #   oRands = spsample(spMSOA[spMSOA$code==oMSOAs[i]],n,"random", iter=10)
+  #   for (j in 1:length(synPop[synPop$Origin==oMSOAs[i])) {
+  #
+  #   }
+  # }
 
   for (i in 1:nrow(synPop)) {
     oRand = spsample(spMSOA[spMSOA$code==synPop$Origin[i],],1,"random", iter=10)
@@ -73,7 +84,7 @@ assignODRandom = function(synPop) {
 # }
 
 
-assignRoute = function(synPop, stride) {
+assignRoute = function(synPop, stride, opacity = 1.0) {
 
   map = leaflet() %>% addTiles()
 
@@ -82,23 +93,23 @@ assignRoute = function(synPop, stride) {
     o = c(synPop$OLon[i], synPop$OLat[i])
     d = c(synPop$DLon[i], synPop$DLat[i])
     m = censusToTransportApiMode(synPop$Travel[i])
-    colour = "green" # Green for cycle
     print(m)
     if ((o[1] != d[1] | o[2] != d[2])) {
       print(i)
       if (m == "car") {
-        colour = "red" # Red for car
         e = tryCatch({
-          map = map %>% addPolylines(data = route_graphhopper(from=o, to=d, vehicle = "car"), weight = 2, opacity = 0.5, color=colour)
+          map = map %>% addPolylines(data = route_graphhopper(from=o, to=d, vehicle = "car"), weight = 2, opacity = opacity, color="red")
         }, error = function(e){print(e)})
-      } else {
-        if (m == "public") {
-          colour = "blue"
-        }
-        # e = tryCatch({
-        #     map = map %>% addPolylines(data = transportApiJourneyQuery(o, d, m), weight = 2, opacity = 1.0, color=colour)
-        #   }, error = function(e){print(e)})
+      } else if (m == "cycle") {
+         e = tryCatch({
+           map = map %>% addPolylines(data = route_graphhopper(from=o, to=d, vehicle = "bike"), weight = 2, opacity = opacity, color="green")
+         }, error = function(e){print(e)})
+      } else if (m == "public") {
+        e = tryCatch({
+          map = map %>% addPolylines(data = transportApiJourneyQuery(o, d, m), weight = 2, opacity = opacity, color="blue")
+        }, error = function(e){print(e)})
       }
+      #Sys.sleep(0.1)
     }
   }
   return(map)

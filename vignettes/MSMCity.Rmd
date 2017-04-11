@@ -84,7 +84,7 @@ Next we assign app users to the synthetic population, matching the above categor
 
 ## Software Detail
 
-Each API requres a key for without with downloads will be restricted or even unavailable. Obtaining a key will require registering with the sites.
+Each API requres a key without which downloads will be restricted or even unavailable. Obtaining a key will require registering with the sites.
 
 The usual practice for API keys in `R` should be adhered to, i.e. they should be added to the user's `.Renviron` file, like so:
 
@@ -99,7 +99,7 @@ TRANSPORT_API = 0123456789abcdef0123456789abcdef
 
 The following functionality is available:
 
-1. Translate local authority string e.g "Newcastle upon Tyne" to MOSA code(s) (nomisweb internal, not "standard"), for use in later queries
+1. Translate local authority string e.g "Newcastle upon Tyne" to MSOA code(s) (nomisweb internal, not "standard"), for use in later queries
 
 2. Query tables to determine what fields (columns) available.
 
@@ -164,18 +164,18 @@ The software is an `R` package, `MSMCity`. Scripts and functions are logically s
 Normal usage would involve editing the array of local authorities defined in `MSIM.R`, e.g.:
 
 ```
-regions=c("Newcastle upon Tyne", "North Tyneside", "Gateshead", "South Tyneside",
+> regions=c("Newcastle upon Tyne", "North Tyneside", "Gateshead", "South Tyneside",
           "Sunderland")
 
 ```
 for a metropolitan county, or 
 ```
-regions=c("Newcastle upon Tyne")
+> regions=c("Newcastle upon Tyne")
 
 ```
 for a single local authority, or
 ```
-regions=c("Bradford 001")
+> regions=c("Bradford 001")
 
 ```
 
@@ -189,7 +189,7 @@ knitr::include_graphics(c("figures/IlkleyO.png","figures/IlkleyD.png"))
 
 Why can't knitr anchor figures???
 
-```{r, echo=FALSE, out.width="50%", fig.show="hold", fig.cap="A sample of commute routes for a single MSOA. Private road transport."}
+```{r, echo=FALSE, out.width="75%", fig.show="hold", fig.cap="A sample of commute routes for a single MSOA. Private road transport."}
 knitr::include_graphics(c("figures/IlkleyCarRoutes.png")) 
 ```
 
@@ -202,7 +202,10 @@ The purpose of this is to provide a foundation for an Agent-Based Model or Model
 ## Known Issues
 
 Census data does not provide any interdependence between work location and mode of travel. NomisWeb does not have a census table containing both work location (MSOA) and mode of travel to work. This can result in assigning unrealistic  home/works locations to non-app users.
-- overloading census and routing APIs.
+
+The APIs, and particularly transportApi, have limits on the number of queries made in a given period (e.g. 1000 per day). This restricts the amount of routing data that can be queried at a given time. By spreading route queries over different APIs, this problem can be reduced. However graphhopper is more limited in that it only supports road journeys in private transport.
+
+Individuals have randomly (within MSOA) assigned home and work locations. In rural areas in particular, this can result in unlikely locations with no roads nearby, and may cause routing API calls to fail. A potential improvement is to obtain dwelling (and potentially workplace) location data per MSOA (from e.g. OpenStreetMap) and randomly assign these locations to individuals.
 
 # Online Resources
 
