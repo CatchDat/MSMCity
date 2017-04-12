@@ -28,6 +28,14 @@ transportApiJourneyQuery = function(oLonLat, dLonLat, mode) {
   }
   obj = jsonlite::fromJSON(txt)
 
+  # TODO: fix!
+  # for public transport, transportApi returns potentially >1 routes,
+  # each of which can have multiple legs, e.g. walk->bus->walk
+  # need to extract one of these and flatten the legs into a single line, e.g.
+  # coords = obj$routes[0]$route_parts[0]$coordinates
+  #        + obj$routes[0]$route_parts[1]$coordinates...
+
+
   coords = obj$routes$coordinates
   coords = do.call(rbind, coords)
   route = sp::SpatialLines(list(sp::Lines(list(sp::Line(coords)), ID = 1)))
