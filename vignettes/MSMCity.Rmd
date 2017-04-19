@@ -40,11 +40,11 @@ By combining the two sources of data, we can construct a realistic (but artifici
 
 ### Data Resolution
 
-Aggregate census data at MSOA level. 
-Approximately 5000 working population per MSOA
-Approximately 5000 households per MSOA.
+Whilst the app data provides depth, giving very detailed information about app users and their movements, it does not provide breadth as there simply aren't enough app users so simulate movements of large numbers of people. We use census data at the mid-layer super output area (MSOA). These represent a geographic area with a mean population of about 7000, and from this data we can get a breakdown of the population in terms of demographic and socioeconomic categories. No further geographical resolution is available, other than the count of workplaces locations (again at MSOA resolution).
 
-Pseudonymised individual-level data from TravelAI. Only about 600 users were present in the supplied dataset.
+In order to pinpoint home and workplace locations, random (within MSOA) sampling was used. 
+
+The app data consisted of pseudonymised individual-level data from TravelAI. Only about 600 users were present in the supplied dataset.
 
 ### Demographic, Geographic and Socioeconomic Categories
 
@@ -92,7 +92,6 @@ The usual practice for API keys in `R` should be adhered to, i.e. they should be
 NOMIS_API_KEY = 0x0123456789abcdef0123456789abcdef01234567
 GRAPHHOPPER = 01234567-89ab-cdef-0123-456789abcdef
 TRANSPORT_API = 0123456789abcdef0123456789abcdef
-
 ```
 
 ### Census API
@@ -125,7 +124,7 @@ The following functionality is available:
 
 ## Algorithm
 
-1. Select Region
+1. Select region or regions
 
 2. Construct queries to collect the following data:
 - MSOAs within region
