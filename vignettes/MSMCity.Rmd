@@ -22,7 +22,13 @@ This paper presents a methodology to "scale-up" crowdsourced commuter movement d
 
 This paper presents a method to simulate travel patterns at a large scale. The method is based on synthetic spatial microdata, of the type produced in spatial microsimulation models [@lovelace_spatial_2016], extending established techniques to incorporate origin-destination data to estimate travel patterns down to the road network level. The methodological developments are driven by the utility of model experiments to help prioritise transport interventions in applied research and practice [@mouter_empirical_2017].
 
-In order to create a large-scale (e.g. citywide) Agent-Based Model, one requires individual-level data on the entire population. Typically this data is simply not available, not least for confidentiality reasons. Hence there is a need to synthesise realistic datasets of this size and level of detail, using a process called microsynthesis.
+To create a large-scale (e.g. city-wide) model experiment of movement patterns that can represent individual preferences, datasets at least three levels are required:
+
+- Spatial data, e.g. zones or individual origins and destinations, such as houses, schools and shops.
+- Individual data, e.g. a sample of anonomised records derived from an official survey [@dale_microdata_2002].
+- Movement data, representing the flow of the individuals to the origins and destinations, e.g. as provided by a spatial interaction model [@wilson_family_1971;@simini_universal_2012].
+
+Historically only the first of these data layers has been commonly available, due to the confidentiallity of individual-level data [@tranmer_case_2005], the difficulty of developing and parameterising spatial interaction models and the lack of origin-destination data in most countries. However, this context of data paucity is shifting to one of data abundance. Global spatial datasets such as OpenStreetMap have emerged [@zhao_statistical_2015]; individual-level data is increasingly available, not least thanks to methods for population synthesis [@long_population_2014]; and origin-destination datasets are emerging thanks mobile phone companies opening-up mobile phone trace data [@alexander_validation_2015]. These developments, combined with the urgent need to plan more sustainable transport systems [@banister_sustainable_2008], creates the need for methods that are able to synthesise and model multi-level data to represent transport patterns down to the road network level.
 
 For this application, we have a set of detailed individual-level data that has been crowdsourced via mobile phone apps. This data provides depth but not breadth, covering a tiny fraction of the population.
 
