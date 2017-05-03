@@ -20,7 +20,7 @@ This paper presents a methodology to "scale-up" crowdsourced commuter movement d
 
 # Introduction
 
-This work focusses on the commute patterns of individuals on a large scale, with the intent of being able to provide insight to transport planners on areas in which infrastructure improvements can be made.
+This paper presents a method to simulate travel patterns at a large scale. The method is based on synthetic spatial microdata, of the type produced in spatial microsimulation models [@lovelace_spatial_2016], extending established techniques to incorporate origin-destination data to estimate travel patterns down to the road network level. The methodological developments are driven by the utility of model experiments to help prioritise transport interventions in applied research and practice [@mouter_empirical_2017].
 
 In order to create a large-scale (e.g. citywide) Agent-Based Model, one requires individual-level data on the entire population. Typically this data is simply not available, not least for confidentiality reasons. Hence there is a need to synthesise realistic datasets of this size and level of detail, using a process called microsynthesis.
 
