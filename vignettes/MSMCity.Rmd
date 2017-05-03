@@ -1,5 +1,5 @@
 ---
-title: "City-wide Microsimulation as a Basis for Agent-Based Modelling"
+title: "MSMCity: a method for simulating citywide travel patterns"
 author: "Andrew P Smith and Robin Lovelace"
 date: '`r format(Sys.time(), "%B %Y")`'
 output:
