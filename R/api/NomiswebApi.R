@@ -52,31 +52,45 @@ getMetadata <- function(tableName) {
   return(fields);
 }
 
+
+
+
 # Get list of MSOA geog codes from a query string e.g. "City of Lon*"
 # MSOA names have a number so almost certainly need to terminate the query string with a wildcard "*"
 getMSOAs <- function(queryString) {
+  return(getOAs(queryString, 297))
+}
 
+getLSOAs = function(queryString) {
+  return(getOAs(queryString, 298))
+}
+
+getOAs = function(queryString, code = 299) {
   query <- list(search = queryString)
 
   if (nomisApiKey == "") {
     warning("Warning, no API key specified. Download will be limited to 25000 rows. Register at https://www.nomisweb.co.uk to get an API key and add NOMIS_API_KEY=<key> to your .Renviron")
   }
-  queryUrl <- httr::modify_url(nomisUrl, path = "/api/v01/dataset/NM_1_1/geography/2092957703TYPE297.def.sdmx.json", query = query)
+  # England: 2092957699 
+  # E&W: 2092957703
+  # GB: 2092957698
+  # UK: 2092957697
+  queryUrl <- httr::modify_url(nomisUrl, path = paste0("/api/v01/dataset/NM_1_1/geography/2092957703TYPE", code,".def.sdmx.json"), query = query)
 
   #print(queryUrl)
 
   result <- fromJSON(file=paste0(queryUrl))
   nResults = length(result$structure$codelists$codelist[[1]]$code)
-  print(paste(nResults, "results"))
+  #print(paste(nResults, "results"))
   geogString = ""
   if (nResults > 0) {
     geogString = paste(geogString, result$structure$codelists$codelist[[1]]$code[[1]]$value)
-    print(paste(result$structure$codelists$codelist[[1]]$code[[1]]$annotations$annotation[[3]]$annotationtext,
-                result$structure$codelists$codelist[[1]]$code[[1]]$description[1]$value))
+    #print(paste(result$structure$codelists$codelist[[1]]$code[[1]]$annotations$annotation[[3]]$annotationtext,
+    #            result$structure$codelists$codelist[[1]]$code[[1]]$description[1]$value))
     if (nResults > 1) {
       for (i in 2:length(result$structure$codelists$codelist[[1]]$code)) {
-        print(paste(result$structure$codelists$codelist[[1]]$code[[i]]$annotations$annotation[[3]]$annotationtext,
-                    result$structure$codelists$codelist[[1]]$code[[i]]$description[1]$value))
+        #print(paste(result$structure$codelists$codelist[[1]]$code[[i]]$annotations$annotation[[3]]$annotationtext,
+        #            result$structure$codelists$codelist[[1]]$code[[i]]$description[1]$value))
         geogString = paste(geogString, result$structure$codelists$codelist[[1]]$code[[i]]$value, sep= ",")
       }
     }
